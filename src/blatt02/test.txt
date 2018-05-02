@@ -1,0 +1,13 @@
+NumberOfLines
+NFA
+Alphabet: a;b;c
+States: x;y;z
+Init: x
+Final: z
+Transitions:
+x;a;y
+x;b;y
+x;b;z
+z;c;z
+z;a;z
+END

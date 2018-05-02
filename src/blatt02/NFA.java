@@ -1,3 +1,4 @@
+import java.util.HashSet;
 import java.util.Set;
 
 
@@ -16,6 +17,18 @@ public class NFA extends EpsilonNFA {
                 }
             }
         }
+    }
+
+    public Set<State> computeReachableStates(Set<State> s, char c) {
+        Set<State> result = new HashSet<>();
+        for (State current : s) {
+            for (Transition t : transitions) {
+                if (t.getStart().equals(current) && t.getLabel() == c) {
+                    result.add(t.getEnd());
+                }
+            }
+        }
+        return result;
     }
 
     @Override
