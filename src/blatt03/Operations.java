@@ -3,18 +3,15 @@ import java.util.Scanner;
 public class Operations {
 
     public static DFA union(DFA d1, DFA d2) {
-        //TODO
-        return null;
+        return DFA.productConstruction(d1, d2, (s1, s2) -> s1 || s2);
     }
 
     public static DFA setminus(DFA d1, DFA d2) {
-        //TODO
-        return null;
+        return DFA.productConstruction(d1, d2, (s1, s2) -> s1 && !s2);
     }
 
     public static DFA xor(DFA d1, DFA d2) {
-        //TODO
-        return null;
+        return DFA.productConstruction(d1, d2, (s1, s2) -> s1 && !s2 || s2 && !s1);
     }
 
     public static void main(String[] args){

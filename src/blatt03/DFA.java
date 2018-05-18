@@ -1,4 +1,5 @@
 import java.util.*;
+import java.util.function.BinaryOperator;
 import java.util.stream.Collectors;
 
 public class DFA extends NFA {
@@ -8,16 +9,41 @@ public class DFA extends NFA {
         checkValidDFA();
     }
 
+    public static DFA productConstruction(DFA d1, DFA d2, BinaryOperator<Boolean> binop) {
+        Map<Pair<State, State>, State> stateMap = new HashMap<>();
+        for (State s1 : d1.getStates()) {
+            for (State s2 : d2.getStates()) {
+                stateMap.put(new Pair<>(s1, s2), new State());
+            }
+        }
+        Set<State> finalStates = stateMap.keySet().stream().filter(pair ->
+                binop.apply(d1.getFinalStates().contains(pair.a), d2.getFinalStates().contains(pair.b)))
+                .map(stateMap::get).collect(Collectors.toSet());
+
+        Set<Transition> transitions = new HashSet<>();
+        for (Pair<State, State> pair : stateMap.keySet()) {
+            State s = stateMap.get(pair);
+            for (char c : d1.getAlphabet()) {
+                State t1 = d1.getSuccessor(pair.a, c);
+                State t2 = d2.getSuccessor(pair.b, c);
+                transitions.add(new Transition(s, stateMap.get(new Pair<>(t1, t2)), c));
+            }
+        }
+
+        State startState = stateMap.get(new Pair<>(d1.startState, d2.startState));
+        return new DFA(new HashSet<>(stateMap.values()), transitions, d1.alphabet, startState, finalStates);
+    }
+
     public Set<State> getReachableStates(Set<State> k) {
         Set<State> result = new HashSet<>();
         List<State> workingList = new ArrayList<>();
         workingList.addAll(k);
-        while(!workingList.isEmpty()) {
+        while (!workingList.isEmpty()) {
             State current = workingList.remove(0);
             if (!result.contains(current)) {
                 result.add(current);
                 for (State s : getAllPossibleSuccessors(current)) {
-                    if(!workingList.contains(s)) workingList.add(s);
+                    if (!workingList.contains(s)) workingList.add(s);
                 }
             }
         }

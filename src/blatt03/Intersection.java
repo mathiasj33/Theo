@@ -4,10 +4,8 @@ import java.util.Scanner;
 
 public class Intersection {
 
-    private static Map<Pair<State, State>, State> map = new HashMap<>();
-
     public static DFA intersection(DFA d1, DFA d2) {
-
+        return DFA.productConstruction(d1, d2, (a, b) -> a && b);
     }
 
     public static void main(String[] args){

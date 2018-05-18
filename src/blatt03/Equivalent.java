@@ -3,8 +3,11 @@ import java.util.Scanner;
 public class Equivalent {
 
     public static boolean equivalent(DFA d1, DFA d2) {
-        //TODO
-        return false;
+        return complementProduct(d1, d2).isEmpty() && complementProduct(d2, d1).isEmpty();
+    }
+
+    private static DFA complementProduct(DFA d1, DFA d2) {
+        return DFA.productConstruction(d1, d2, (a, b) -> a && !b);
     }
 
     public static void main(String[] args){
