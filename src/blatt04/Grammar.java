@@ -1,4 +1,5 @@
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class Grammar {
     /**
@@ -112,13 +113,42 @@ public class Grammar {
                    char startingSymbol) {
         this.alphabet = Collections.unmodifiableSet(new HashSet<>(alphabet));
         this.nonTerminals = Collections.unmodifiableSet(new HashSet<>(nonTerminals));
-        this.productions = Collections.unmodifiableSet(new HashSet<>(productions));
+        this.productions = new HashSet<>(productions);
         this.startingSymbol = startingSymbol;
         checkValidGrammar();
     }
 
     public void eliminateEpsilon() {
-        //TODO
+        Set<Character> epsilonNTs = findAllEpsilonNTs();
+        Set<Production> newProductions = new HashSet<>();
+        for (Production p : productions) {
+            newProductions.addAll(p.getAllEpsilonCombinations(epsilonNTs));
+        }
+        productions.addAll(newProductions);
+        productions.removeAll(productions.stream().filter(p -> p.isEpsilon() && p.left.charAt(0) != startingSymbol).collect(Collectors.toSet()));
+    }
+
+    private Set<Character> findAllEpsilonNTs() {
+        Set<Character> epsilonNTs = productions.stream().filter(Production::isEpsilon)
+                .map(p -> p.left.charAt(0)).collect(Collectors.toSet());
+        Set<Character> newEpsilonNTs = new HashSet<>();
+        do {
+            epsilonNTs.addAll(newEpsilonNTs);
+            newEpsilonNTs.clear();
+            for (Production p : productions) {
+                if (isComposedOfCharacters(p.right, epsilonNTs)) {
+                    newEpsilonNTs.add(p.left.charAt(0));
+                }
+            }
+        } while (!epsilonNTs.containsAll(newEpsilonNTs));
+        return epsilonNTs;
+    }
+
+    private boolean isComposedOfCharacters(String s, Set<Character> charSet) {
+        for (char c : s.toCharArray()) {
+            if (!charSet.contains(c)) return false;
+        }
+        return true;
     }
 
     public boolean containsWord(String word) {
@@ -135,9 +165,9 @@ public class Grammar {
         for (String s : level) {
             for (int i = 0; i < s.length(); i++) {
                 char c = s.charAt(i);
-                if(!nonTerminals.contains(c)) continue;
+                if (!nonTerminals.contains(c)) continue;
                 for (String expanded : expandNonTerminal(c)) {
-                    nextLevel.add(s.substring(0, i) + expanded + s.substring(i+1, s.length()));
+                    nextLevel.add(s.substring(0, i) + expanded + s.substring(i + 1, s.length()));
                 }
             }
         }
@@ -147,7 +177,7 @@ public class Grammar {
     private List<String> expandNonTerminal(char nt) {
         List<String> result = new ArrayList<>();
         for (Production production : productions) {
-            if(production.left.charAt(0) == nt) result.add(production.right);
+            if (production.left.charAt(0) == nt) result.add(production.right);
         }
         return result;
     }
