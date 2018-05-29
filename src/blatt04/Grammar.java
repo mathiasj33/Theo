@@ -152,22 +152,41 @@ public class Grammar {
     }
 
     public boolean containsWord(String word) {
-        List<String> level = new ArrayList<>();
+        //eliminateEpsilon();
+        boolean isStartEpsilon = isStartEpsilon();
+        List<String> level = new ArrayList<>(); //TODO: auf hashset umschreiben? CNF?
         level.add("" + startingSymbol);
         while (true) {
-            level = generateNextLevel(level);
-            //TODO
+            List<String> withoutEpsilon = level.stream().map(s -> isStartEpsilon ? removeEpsilon(s) : s).collect(Collectors.toList());
+            if (withoutEpsilon.contains(word)) return true;
+            if (withoutEpsilon.stream().allMatch(s -> s.length() > word.length())) return false;
+            level = generateNextLevel(level, word);
+            if(level == null) return true;
         }
     }
 
-    private List<String> generateNextLevel(List<String> level) {
+    private String removeEpsilon(String s) {
+        String newString = "";
+        for (char c : s.toCharArray()) {
+            if (c != startingSymbol) newString += c;
+        }
+        return newString;
+    }
+
+    private boolean isStartEpsilon() {
+        return productions.stream().anyMatch(p -> p.left.charAt(0) == startingSymbol && p.right.equals(""));
+    }
+
+    private List<String> generateNextLevel(List<String> level, String word) {
         List<String> nextLevel = new ArrayList<>();
         for (String s : level) {
             for (int i = 0; i < s.length(); i++) {
                 char c = s.charAt(i);
                 if (!nonTerminals.contains(c)) continue;
                 for (String expanded : expandNonTerminal(c)) {
-                    nextLevel.add(s.substring(0, i) + expanded + s.substring(i + 1, s.length()));
+                    String newString = s.substring(0, i) + expanded + s.substring(i + 1, s.length());
+                    if(newString.equals(word)) return null;
+                    nextLevel.add(newString);
                 }
             }
         }

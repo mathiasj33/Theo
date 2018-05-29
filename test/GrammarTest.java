@@ -63,8 +63,15 @@ public class GrammarTest {
         productions.add(new Production("S", "bSb"));
         Grammar g = new Grammar(alphabet, nonTerminals, productions, 'S');
 
-        g.containsWord("aaa");
-
-        assertTrue(true);
+        assertTrue(g.containsWord(""));
+        assertTrue(g.containsWord("a"));
+        assertTrue(g.containsWord("aba"));
+        assertTrue(g.containsWord("abba"));
+        assertTrue(g.containsWord("bbb"));
+        assertTrue(g.containsWord("babab"));
+        assertFalse(g.containsWord("ab"));
+        assertFalse(g.containsWord("bc"));
+        assertFalse(g.containsWord("bba"));
+        assertFalse(g.containsWord("bbaba"));
     }
 }
