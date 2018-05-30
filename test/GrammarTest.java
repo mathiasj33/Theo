@@ -11,7 +11,7 @@ import static org.junit.Assert.*;
 
 public class GrammarTest {
 
-    private static final String CHOMSKY_GRAMMAR = "chomskyExample.txt";
+    private static final String CHOMSKY_GRAMMAR = "test_res/chomskyExample.txt";
 
     private Grammar loadGrammar(String path) {
         Scanner scanner = null;
@@ -46,6 +46,31 @@ public class GrammarTest {
         expectedNTs.remove('C');
 
         g.eliminateNonGeneratingNTs();
+        assertEquals(expectedNTs, g.nonTerminals);
+        assertEquals(expectedProductions, g.productions);
+    }
+
+    @Test
+    public void findReachable() {
+        Grammar g = loadGrammar(CHOMSKY_GRAMMAR);
+        g.eliminateNonGeneratingNTs();
+        Set<Character> expected = new HashSet<>();
+        expected.add('S');
+        expected.add('A');
+        expected.add('B');
+        assertEquals(expected, g.findReachableNTs());
+    }
+
+    @Test
+    public void eliminateNonReachable() {
+        Grammar g = loadGrammar(CHOMSKY_GRAMMAR);
+        g.eliminateNonGeneratingNTs();
+        Set<Production> expectedProductions = new HashSet<>(g.productions);
+        expectedProductions.remove(new Production("D", "a"));
+        Set<Character> expectedNTs = new HashSet<>(g.nonTerminals);
+        expectedNTs.remove('D');
+
+        g.eliminateNonReachableNTs();
         assertEquals(expectedNTs, g.nonTerminals);
         assertEquals(expectedProductions, g.productions);
     }

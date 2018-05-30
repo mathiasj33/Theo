@@ -124,9 +124,8 @@ public class Grammar {
         Set<Character> generatingNTs = findGeneratingNTs();
         nonTerminals = new HashSet<>(generatingNTs);
         generatingNTs.addAll(alphabet);
-        Set<Production> newProductions = productions.stream()
+        productions = productions.stream()
                 .filter(p -> isComposedOfCharacters(p.right, generatingNTs)).collect(Collectors.toSet());
-        productions = newProductions;
     }
 
     public Set<Character> findGeneratingNTs() {
@@ -134,9 +133,23 @@ public class Grammar {
         Set<Character> generating = productions.stream().filter(p -> isComposedOfCharacters(p.right, terminals))
                 .map(p -> p.left.charAt(0)).collect(Collectors.toSet());
         generating.addAll(terminals);
-        generating = findCharactersSatisfying(generating, this::isComposedOfCharacters);
+        generating = findCharactersSatisfying(generating, this::isComposedOfCharacters, true);
         generating.removeAll(terminals);
         return generating;
+    }
+
+    public void eliminateNonReachableNTs() {
+        Set<Character> reachableNTs = findReachableNTs();
+        nonTerminals = new HashSet<>(reachableNTs);
+        productions = productions.stream()
+                .filter(p -> reachableNTs.contains(p.left.charAt(0))).collect(Collectors.toSet());
+    }
+
+    public Set<Character> findReachableNTs() {
+        Set<Character> generating = new HashSet<>();
+        generating.add(startingSymbol);
+        return findCharactersSatisfying(generating, this::isComposedOfCharacters, false)
+                .stream().filter(nonTerminals::contains).collect(Collectors.toSet());
     }
 
     public void eliminateEpsilon() {
@@ -152,17 +165,23 @@ public class Grammar {
     private Set<Character> findAllEpsilonNTs() {
         Set<Character> epsilonNTs = productions.stream().filter(Production::isEpsilon)
                 .map(p -> p.left.charAt(0)).collect(Collectors.toSet());
-        return findCharactersSatisfying(epsilonNTs, this::isComposedOfCharacters);
+        return findCharactersSatisfying(epsilonNTs, this::isComposedOfCharacters, true);
     }
 
-    private Set<Character> findCharactersSatisfying(Set<Character> base, BiPredicate<String, Set<Character>> condition) {
+    private Set<Character> findCharactersSatisfying(Set<Character> base, BiPredicate<String, Set<Character>> condition, boolean addLeft) {
         Set<Character> toAdd = new HashSet<>();
         do {
             base.addAll(toAdd);
             toAdd.clear();
             for (Production p : productions) {
-                if (condition.test(p.right, base)) {
-                    toAdd.add(p.left.charAt(0));
+                if (addLeft) {
+                    if (condition.test(p.right, base)) {
+                        toAdd.add(p.left.charAt(0));
+                    }
+                } else {
+                    if(condition.test(p.left, base)) {
+                        for(char c : p.right.toCharArray()) toAdd.add(c);
+                    }
                 }
             }
         } while (!base.containsAll(toAdd));
