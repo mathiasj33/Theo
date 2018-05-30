@@ -118,6 +118,24 @@ public class Grammar {
         checkValidGrammar();
     }
 
+    public Set<Character> findGeneratingNTs() {
+        Set<Character> terminals = alphabet.stream().filter(c -> !nonTerminals.contains(c)).collect(Collectors.toSet());
+        Set<Character> generating = productions.stream().filter(p -> isComposedOfCharacters(p.right, terminals))
+                .map(p -> p.left.charAt(0)).collect(Collectors.toSet());
+        Set<Character> newGenerating = new HashSet<>();
+        do {
+            generating.addAll(newGenerating);
+            newGenerating.clear();
+            for (Production p : productions) {
+                if (isComposedOfCharacters(p.right, generating)) {
+                    newGenerating.add(p.left.charAt(0));
+                }
+            }
+        } while (!generating.containsAll(newGenerating));
+
+        return generating;
+    }
+
     public void eliminateEpsilon() {
         Set<Character> epsilonNTs = findAllEpsilonNTs();
         Set<Production> newProductions = new HashSet<>();
@@ -152,53 +170,11 @@ public class Grammar {
     }
 
     public boolean containsWord(String word) {
-        //eliminateEpsilon();
-        boolean isStartEpsilon = isStartEpsilon();
-        List<String> level = new ArrayList<>(); //TODO: auf hashset umschreiben? CNF?
-        level.add("" + startingSymbol);
-        while (true) {
-            List<String> withoutEpsilon = level.stream().map(s -> isStartEpsilon ? removeEpsilon(s) : s).collect(Collectors.toList());
-            if (withoutEpsilon.contains(word)) return true;
-            if (withoutEpsilon.stream().allMatch(s -> s.length() > word.length())) return false;
-            level = generateNextLevel(level, word);
-            if(level == null) return true;
-        }
-    }
-
-    private String removeEpsilon(String s) {
-        String newString = "";
-        for (char c : s.toCharArray()) {
-            if (c != startingSymbol) newString += c;
-        }
-        return newString;
+        return false;
     }
 
     private boolean isStartEpsilon() {
         return productions.stream().anyMatch(p -> p.left.charAt(0) == startingSymbol && p.right.equals(""));
-    }
-
-    private List<String> generateNextLevel(List<String> level, String word) {
-        List<String> nextLevel = new ArrayList<>();
-        for (String s : level) {
-            for (int i = 0; i < s.length(); i++) {
-                char c = s.charAt(i);
-                if (!nonTerminals.contains(c)) continue;
-                for (String expanded : expandNonTerminal(c)) {
-                    String newString = s.substring(0, i) + expanded + s.substring(i + 1, s.length());
-                    if(newString.equals(word)) return null;
-                    nextLevel.add(newString);
-                }
-            }
-        }
-        return nextLevel;
-    }
-
-    private List<String> expandNonTerminal(char nt) {
-        List<String> result = new ArrayList<>();
-        for (Production production : productions) {
-            if (production.left.charAt(0) == nt) result.add(production.right);
-        }
-        return result;
     }
 
     @Override

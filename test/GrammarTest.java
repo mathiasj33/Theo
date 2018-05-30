@@ -1,11 +1,49 @@
 import org.junit.Test;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.util.HashSet;
+import java.util.Scanner;
 import java.util.Set;
 
 import static org.junit.Assert.*;
 
 public class GrammarTest {
+
+    private static final String CHOMSKY_GRAMMAR = "chomskyExample.txt";
+
+    private Grammar loadGrammar(String path) {
+        Scanner scanner = null;
+        try {
+            scanner = new Scanner(new FileInputStream(new File(path)));
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+            fail("Couldn't find grammar");
+        }
+        return Grammar.parse(scanner);
+    }
+
+    @Test
+    public void findGenerating() {
+        Grammar g = loadGrammar(CHOMSKY_GRAMMAR);
+        Set<Character> expected = new HashSet<>();
+        expected.add('A');
+        expected.add('B');
+        expected.add('D');
+        expected.add('S');
+        assertEquals(expected, g.findGeneratingNTs());
+    }
+
+    @Test
+    public void eliminateNonGenerating() {
+
+    }
+
+    @Test
+    public void addCNFNTs() {
+
+    }
 
     @Test
     public void eliminateEpsilon() {
@@ -48,7 +86,7 @@ public class GrammarTest {
         assertEquals(expected, g.productions);
     }
 
-    @Test
+    //@Test
     public void containsWord() {
         Set<Character> alphabet = new HashSet<>();
         alphabet.add('a');
