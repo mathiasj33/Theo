@@ -37,7 +37,17 @@ public class GrammarTest {
 
     @Test
     public void eliminateNonGenerating() {
+        Grammar g = loadGrammar(CHOMSKY_GRAMMAR);
+        Set<Production> expectedProductions = new HashSet<>(g.productions);
+        expectedProductions.remove(new Production("C", "aC"));
+        expectedProductions.remove(new Production("A", "CB"));
+        expectedProductions.remove(new Production("D", "aSCb"));
+        Set<Character> expectedNTs = new HashSet<>(g.nonTerminals);
+        expectedNTs.remove('C');
 
+        g.eliminateNonGeneratingNTs();
+        assertEquals(expectedNTs, g.nonTerminals);
+        assertEquals(expectedProductions, g.productions);
     }
 
     @Test

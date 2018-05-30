@@ -1,4 +1,6 @@
 import java.util.*;
+import java.util.function.BiPredicate;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 public class Grammar {
@@ -105,34 +107,35 @@ public class Grammar {
     }
 
     final Set<Character> alphabet;
-    final Set<Character> nonTerminals;
-    final Set<Production> productions;
+    Set<Character> nonTerminals;
+    Set<Production> productions;
     final char startingSymbol;
 
     public Grammar(Set<Character> alphabet, Set<Character> nonTerminals, Set<Production> productions,
                    char startingSymbol) {
         this.alphabet = Collections.unmodifiableSet(new HashSet<>(alphabet));
-        this.nonTerminals = Collections.unmodifiableSet(new HashSet<>(nonTerminals));
+        this.nonTerminals = new HashSet<>(nonTerminals);
         this.productions = new HashSet<>(productions);
         this.startingSymbol = startingSymbol;
         checkValidGrammar();
+    }
+
+    public void eliminateNonGeneratingNTs() {
+        Set<Character> generatingNTs = findGeneratingNTs();
+        nonTerminals = new HashSet<>(generatingNTs);
+        generatingNTs.addAll(alphabet);
+        Set<Production> newProductions = productions.stream()
+                .filter(p -> isComposedOfCharacters(p.right, generatingNTs)).collect(Collectors.toSet());
+        productions = newProductions;
     }
 
     public Set<Character> findGeneratingNTs() {
         Set<Character> terminals = alphabet.stream().filter(c -> !nonTerminals.contains(c)).collect(Collectors.toSet());
         Set<Character> generating = productions.stream().filter(p -> isComposedOfCharacters(p.right, terminals))
                 .map(p -> p.left.charAt(0)).collect(Collectors.toSet());
-        Set<Character> newGenerating = new HashSet<>();
-        do {
-            generating.addAll(newGenerating);
-            newGenerating.clear();
-            for (Production p : productions) {
-                if (isComposedOfCharacters(p.right, generating)) {
-                    newGenerating.add(p.left.charAt(0));
-                }
-            }
-        } while (!generating.containsAll(newGenerating));
-
+        generating.addAll(terminals);
+        generating = findCharactersSatisfying(generating, this::isComposedOfCharacters);
+        generating.removeAll(terminals);
         return generating;
     }
 
@@ -149,17 +152,21 @@ public class Grammar {
     private Set<Character> findAllEpsilonNTs() {
         Set<Character> epsilonNTs = productions.stream().filter(Production::isEpsilon)
                 .map(p -> p.left.charAt(0)).collect(Collectors.toSet());
-        Set<Character> newEpsilonNTs = new HashSet<>();
+        return findCharactersSatisfying(epsilonNTs, this::isComposedOfCharacters);
+    }
+
+    private Set<Character> findCharactersSatisfying(Set<Character> base, BiPredicate<String, Set<Character>> condition) {
+        Set<Character> toAdd = new HashSet<>();
         do {
-            epsilonNTs.addAll(newEpsilonNTs);
-            newEpsilonNTs.clear();
+            base.addAll(toAdd);
+            toAdd.clear();
             for (Production p : productions) {
-                if (isComposedOfCharacters(p.right, epsilonNTs)) {
-                    newEpsilonNTs.add(p.left.charAt(0));
+                if (condition.test(p.right, base)) {
+                    toAdd.add(p.left.charAt(0));
                 }
             }
-        } while (!epsilonNTs.containsAll(newEpsilonNTs));
-        return epsilonNTs;
+        } while (!base.containsAll(toAdd));
+        return base;
     }
 
     private boolean isComposedOfCharacters(String s, Set<Character> charSet) {
