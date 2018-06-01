@@ -3,8 +3,8 @@ import java.util.Objects;
 
 public class Transition implements Comparable<Transition>{
 
-    private final State start;
-    private final State end;
+    private State start;
+    private State end;
     private final char label;
     public static final char EPSILON = Character.MIN_VALUE;
 
@@ -24,6 +24,14 @@ public class Transition implements Comparable<Transition>{
 
     public char getLabel() {
         return label;
+    }
+
+    public void setStart(State start) {
+        this.start = start;
+    }
+
+    public void setEnd(State end) {
+        this.end = end;
     }
 
     @Override

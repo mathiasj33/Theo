@@ -1,11 +1,82 @@
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
 public class DFA extends NFA {
 
+    private Map<UnorderedPair<State, State>, Set<UnorderedPair<State, State>>> inverseMapping;
+    private Set<UnorderedPair<State, State>> distinctPairs;
+
     public DFA(Set<State> states, Set<Transition> transitions, Set<Character> alphabet, State startState, Set<State> finalStates) {
         super(states, transitions, alphabet, startState, finalStates);
+        inverseMapping = new HashMap<>();
+        distinctPairs = new HashSet<>();
         checkValidDFA();
+    }
+
+    public void minimize() {
+        fillInverseMapping();
+        markDistinctPairs();
+        collapse();
+    }
+
+    private void fillInverseMapping() {
+        for (State s1 : states) {
+            for (State s2 : states) {
+                if(s1.equals(s2)) continue;
+                for (Character c : alphabet) {
+                    State r1 = getSuccessor(s1, c);
+                    State r2 = getSuccessor(s2, c);
+                    if(r1.equals(r2)) continue;
+                    inverseMapping.putIfAbsent(new UnorderedPair<>(r1, r2), new HashSet<>());
+                    Set<UnorderedPair<State, State>> set = inverseMapping.get(new UnorderedPair<>(r1, r2));
+                    set.add(new UnorderedPair<>(s1, s2));
+                }
+            }
+        }
+    }
+
+    private void markDistinctPairs() {
+        states.stream().filter(finalStates::contains).forEach(f -> {
+            states.stream().filter(s -> !finalStates.contains(s)).forEach(nf -> {
+                markPairWithPredecessors(new UnorderedPair<>(f, nf));
+            });
+        });
+    }
+
+    private void markPairWithPredecessors(UnorderedPair<State, State> pair) {
+        if(distinctPairs.contains(pair)) return;
+        distinctPairs.add(pair);
+        if(inverseMapping.get(pair) == null) return;
+        inverseMapping.get(pair).forEach(this::markPairWithPredecessors);
+    }
+
+    private void collapse() {
+        List<State> toRemove = new ArrayList<>();
+        for (State s1 : states) {
+            if(toRemove.contains(s1)) continue;
+            for (State s2 : states) {
+                if(s2.equals(s1)) continue;
+                if(toRemove.contains(s2)) continue;
+                if(distinctPairs.contains(new UnorderedPair<>(s1, s2))) continue;
+                combineStates(s1, s2);
+                toRemove.add(s2);
+                if(startState.equals(s2)) startState = s1;
+            }
+        }
+
+        states.removeAll(toRemove);
+        finalStates.remove(toRemove);
+    }
+
+    private void combineStates(State s1, State s2) {
+        //collapses s2 into s1
+        for (Transition t : transitions) {
+            if(t.getStart().equals(s2)) {
+                t.setStart(s1);
+            }
+            if(t.getEnd().equals(s2)) {
+                t.setEnd(s1);
+            }
+        }
     }
 
     /**
