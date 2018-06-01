@@ -1,9 +1,9 @@
 import java.util.*;
 
-public class DFA extends NFA {
+public class DFA extends NFA { //TODO: copy all,
 
-    private Map<UnorderedPair<State, State>, Set<UnorderedPair<State, State>>> inverseMapping;
-    private Set<UnorderedPair<State, State>> distinctPairs;
+    private Map<UnorderedPair<State>, Set<UnorderedPair<State>>> inverseMapping;
+    private Set<UnorderedPair<State>> distinctPairs;
 
     public DFA(Set<State> states, Set<Transition> transitions, Set<Character> alphabet, State startState, Set<State> finalStates) {
         super(states, transitions, alphabet, startState, finalStates);
@@ -15,19 +15,28 @@ public class DFA extends NFA {
     public void minimize() {
         fillInverseMapping();
         markDistinctPairs();
+        Set<UnorderedPair<State>> nonDistinct = new HashSet<>();
+        for (State s1 : states) {
+            for (State s2 : states) {
+                if (!distinctPairs.contains(new UnorderedPair<>(s1, s2))) {
+                    if (s1.equals(s2)) continue;
+                    nonDistinct.add(new UnorderedPair<>(s1, s2));
+                }
+            }
+        }
         collapse();
     }
 
     private void fillInverseMapping() {
         for (State s1 : states) {
             for (State s2 : states) {
-                if(s1.equals(s2)) continue;
+                if (s1.equals(s2)) continue;
                 for (Character c : alphabet) {
                     State r1 = getSuccessor(s1, c);
                     State r2 = getSuccessor(s2, c);
-                    if(r1.equals(r2)) continue;
+                    if (r1.equals(r2)) continue;
                     inverseMapping.putIfAbsent(new UnorderedPair<>(r1, r2), new HashSet<>());
-                    Set<UnorderedPair<State, State>> set = inverseMapping.get(new UnorderedPair<>(r1, r2));
+                    Set<UnorderedPair<State>> set = inverseMapping.get(new UnorderedPair<>(r1, r2));
                     set.add(new UnorderedPair<>(s1, s2));
                 }
             }
@@ -35,15 +44,16 @@ public class DFA extends NFA {
     }
 
     private void markDistinctPairs() {
-        states.stream().filter(finalStates::contains).forEach(f -> {
+        states.stream().filter(finalStates::contains).forEach(f ->
             states.stream().filter(s -> !finalStates.contains(s)).forEach(nf -> {
-                markPairWithPredecessors(new UnorderedPair<>(f, nf));
-            });
-        });
+                if (!f.equals(nf)) {
+                    markPairWithPredecessors(new UnorderedPair<>(f, nf));
+                }
+            }));
     }
 
-    private void markPairWithPredecessors(UnorderedPair<State, State> pair) {
-        if(distinctPairs.contains(pair)) return;
+    private void markPairWithPredecessors(UnorderedPair<State> pair) {
+        if (distinctPairs.contains(pair)) return;
         distinctPairs.add(pair);
         if(inverseMapping.get(pair) == null) return;
         inverseMapping.get(pair).forEach(this::markPairWithPredecessors);
@@ -52,28 +62,28 @@ public class DFA extends NFA {
     private void collapse() {
         List<State> toRemove = new ArrayList<>();
         for (State s1 : states) {
-            if(toRemove.contains(s1)) continue;
+            if (toRemove.contains(s1)) continue;
             for (State s2 : states) {
-                if(s2.equals(s1)) continue;
-                if(toRemove.contains(s2)) continue;
-                if(distinctPairs.contains(new UnorderedPair<>(s1, s2))) continue;
+                if (s2.equals(s1)) continue;
+                if (toRemove.contains(s2)) continue;
+                if (distinctPairs.contains(new UnorderedPair<>(s1, s2))) continue;
                 combineStates(s1, s2);
                 toRemove.add(s2);
-                if(startState.equals(s2)) startState = s1;
+                if (startState.equals(s2)) startState = s1;
             }
         }
 
         states.removeAll(toRemove);
-        finalStates.remove(toRemove);
+        finalStates.removeAll(toRemove);
     }
 
     private void combineStates(State s1, State s2) {
         //collapses s2 into s1
         for (Transition t : transitions) {
-            if(t.getStart().equals(s2)) {
+            if (t.getStart().equals(s2)) {
                 t.setStart(s1);
             }
-            if(t.getEnd().equals(s2)) {
+            if (t.getEnd().equals(s2)) {
                 t.setEnd(s1);
             }
         }
@@ -84,13 +94,14 @@ public class DFA extends NFA {
      * It surely exists, because the transition relation was checked to be total in checkValidDFA.
      * There surely is only one, because that was also checked in checkValidDFA
      * If the given char is not in the alphabet, returns null
+     *
      * @param s The state from which to start.
      * @param a The letter to read
      * @return The successor of the transition starting in s reading a.
      */
-    public State getSuccessor(State s, char a){
-        for (Transition t : transitions){
-            if(t.getStart().equals(s) && t.getLabel()==a){
+    public State getSuccessor(State s, char a) {
+        for (Transition t : transitions) {
+            if (t.getStart().equals(s) && t.getLabel() == a) {
                 return t.getEnd();
             }
         }
@@ -104,15 +115,15 @@ public class DFA extends NFA {
      * Checks firstly that each state has a transition for each label at most once, after that at least once.
      * We do not need to check that the transition labels are a subset of the alphabet, that is done in checkValidEpsilonNFA
      */
-    private void checkValidDFA() throws IllegalArgumentException{
-        for (State s : states){
+    private void checkValidDFA() throws IllegalArgumentException {
+        for (State s : states) {
             Set<Character> transLabels = new HashSet<>();
-            for (Transition t : getTransitionsFromState(s)){
-                if(!transLabels.add(t.getLabel())){
+            for (Transition t : getTransitionsFromState(s)) {
+                if (!transLabels.add(t.getLabel())) {
                     throw new IllegalArgumentException("State " + s + " has more than one transition for label " + t.getLabel());
                 }
             }
-            if(!transLabels.containsAll(alphabet)){
+            if (!transLabels.containsAll(alphabet)) {
                 Set<Character> missingSet = new HashSet<>(alphabet);
                 missingSet.removeAll(transLabels);
                 throw new IllegalArgumentException("State " + s + " is missing a transition for label(s): " + missingSet);
@@ -121,7 +132,7 @@ public class DFA extends NFA {
     }
 
     @Override
-    public String toString(){
+    public String toString() {
         return "DFA\n" + toStringHelper();
     }
 

@@ -169,11 +169,11 @@ public class Grammar {
                     newRight.append(c);
                     continue;
                 } else {
-                    if(getDirectNT(c)) {
+                    /*if(getDirectNT(c)) {
 
                     } else {
 
-                    }
+                    }*/
                     char nt = newNT;
                     newNT--;
                     newNTs.add(nt);

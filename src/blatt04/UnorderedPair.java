@@ -1,27 +1,25 @@
+import java.util.HashSet;
 import java.util.Objects;
+import java.util.Set;
 
-public class UnorderedPair<A, B> {
-    public A a;
-    public B b;
+public class UnorderedPair<T> {
+    private Set<T> set = new HashSet<>();
+
+    public UnorderedPair(T a, T b) {
+        set.add(a);
+        set.add(b);
+    }
 
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        UnorderedPair<?, ?> pair = (UnorderedPair<?, ?>) o;
-        return Objects.equals(a, pair.a) &&
-                Objects.equals(b, pair.b) ||
-                Objects.equals(a, pair.b) &&
-                        Objects.equals(b, pair.a);
+        UnorderedPair<?> that = (UnorderedPair<?>) o;
+        return Objects.equals(set, that.set);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(a) + Objects.hash(b);
-    }
-
-    public UnorderedPair(A a, B b) {
-        this.a = a;
-        this.b = b;
+        return Objects.hash(set);
     }
 }

@@ -10,7 +10,6 @@ public class State implements Comparable<State>{
 
     public State(){
         id = id_counter++;
-        this.name = "" + id;
     }
 
     public State(String name){
