@@ -77,7 +77,23 @@ public class GrammarTest {
 
     @Test
     public void addCNFNTs() {
+        Grammar g = loadGrammar(CHOMSKY_GRAMMAR);
+        g.clean();
+        Set<Production> expectedProductions = new HashSet<>(g.productions);
+        expectedProductions.remove(new Production("S", "aB"));
+        expectedProductions.add(new Production("S", (char) 65535 + "B"));
+        expectedProductions.add(new Production("" + (char) 65535, "a"));
 
+        Set<Character> expectedAlphabet = new HashSet<>(g.alphabet);
+        expectedAlphabet.add((char) 65535);
+
+        Set<Character> expectedNTs = new HashSet<>(g.nonTerminals);
+        expectedNTs.add((char) 65535);
+
+        g.addCNFNTs();
+        assertEquals(expectedAlphabet, g.alphabet);
+        assertEquals(expectedNTs, g.nonTerminals);
+        assertEquals(expectedProductions, g.productions);
     }
 
     @Test
@@ -112,13 +128,10 @@ public class GrammarTest {
         expected.add(new Production("B", "b"));
         expected.add(new Production("B", "bB"));
 
-        /*for(Production p : expected) {
-            if(!g.productions.contains(p)) System.out.println(p);
-        }
-        for(Production p : g.productions) {
-            if(!expected.contains(p)) System.out.println(p);
-        }*/
         assertEquals(expected, g.productions);
+
+        g = loadGrammar(CHOMSKY_GRAMMAR);
+
     }
 
     //@Test

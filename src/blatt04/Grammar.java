@@ -110,6 +110,7 @@ public class Grammar {
     Set<Character> nonTerminals;
     Set<Production> productions;
     final char startingSymbol;
+    private char newNT = '\uffff';
 
     public Grammar(Set<Character> alphabet, Set<Character> nonTerminals, Set<Production> productions,
                    char startingSymbol) {
@@ -118,6 +119,11 @@ public class Grammar {
         this.productions = new HashSet<>(productions);
         this.startingSymbol = startingSymbol;
         checkValidGrammar();
+    }
+
+    public void clean() {
+        eliminateNonGeneratingNTs();
+        eliminateNonReachableNTs();
     }
 
     public void eliminateNonGeneratingNTs() {
@@ -152,6 +158,40 @@ public class Grammar {
                 .stream().filter(nonTerminals::contains).collect(Collectors.toSet());
     }
 
+    public void addCNFNTs() {
+        List<Character> newNTs = new ArrayList<>();
+        List<Production> newProductions = new ArrayList<>();
+        for (Production p : productions) {
+            if (p.right.length() < 2) continue;
+            StringBuilder newRight = new StringBuilder();
+            for (char c : p.right.toCharArray()) {
+                if (nonTerminals.contains(c)) {
+                    newRight.append(c);
+                    continue;
+                } else {
+                    if(getDirectNT(c)) {
+
+                    } else {
+
+                    }
+                    char nt = newNT;
+                    newNT--;
+                    newNTs.add(nt);
+                    newProductions.add(new Production("" + newNT, "" + c));
+                    newRight.append(nt);
+                }
+                newRight.append(c);
+            }
+            p.right = newRight.toString();
+        }
+        nonTerminals.addAll(newNTs);
+        productions.addAll(newProductions);
+    }
+
+    private boolean existsTerminalRule(char terminal) {
+        return productions.stream().anyMatch(p -> p.right.length() == 1 && p.right.charAt(0) == terminal);
+    }
+
     public void eliminateEpsilon() {
         Set<Character> epsilonNTs = findAllEpsilonNTs();
         Set<Production> newProductions = new HashSet<>();
@@ -179,8 +219,8 @@ public class Grammar {
                         toAdd.add(p.left.charAt(0));
                     }
                 } else {
-                    if(condition.test(p.left, base)) {
-                        for(char c : p.right.toCharArray()) toAdd.add(c);
+                    if (condition.test(p.left, base)) {
+                        for (char c : p.right.toCharArray()) toAdd.add(c);
                     }
                 }
             }

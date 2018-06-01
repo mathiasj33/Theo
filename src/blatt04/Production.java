@@ -3,7 +3,7 @@ import java.util.stream.Collectors;
 
 public class Production {
     final String left;
-    final String right;
+    String right;
 
     Production(String left, String right) {
         this.left = left;
