@@ -6,11 +6,11 @@ public class State implements Comparable<State>{
 
     private static int id_counter = 0;
     private final int id;
-    private final String name; //may be useful for thinking or debugging
+    private String name; //may be useful for thinking or debugging
 
     public State(){
         id = id_counter++;
-        this.name = "";
+        this.name = "" + id;
     }
 
     public State(String name){
@@ -35,6 +35,10 @@ public class State implements Comparable<State>{
 
     public String getName() {
         return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 
     @Override
