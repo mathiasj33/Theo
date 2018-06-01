@@ -1,6 +1,7 @@
 import java.util.*;
+import java.util.stream.Collectors;
 
-public class DFA extends NFA { //TODO: copy all,
+public class DFA extends NFA {
 
     private Map<UnorderedPair<State>, Set<UnorderedPair<State>>> inverseMapping;
     private Set<UnorderedPair<State>> distinctPairs;
@@ -13,18 +14,35 @@ public class DFA extends NFA { //TODO: copy all,
     }
 
     public void minimize() {
+        removeNonReachableStates();
         fillInverseMapping();
         markDistinctPairs();
-        Set<UnorderedPair<State>> nonDistinct = new HashSet<>();
-        for (State s1 : states) {
-            for (State s2 : states) {
-                if (!distinctPairs.contains(new UnorderedPair<>(s1, s2))) {
-                    if (s1.equals(s2)) continue;
-                    nonDistinct.add(new UnorderedPair<>(s1, s2));
-                }
-            }
-        }
         collapse();
+    }
+
+    private void removeNonReachableStates() {
+        Set<State> result = new HashSet<>();
+        Stack<State> workingList = new Stack<>();
+        workingList.push(startState);
+        while (!workingList.isEmpty()) {
+            State current = workingList.pop();
+            result.add(current);
+            getAllPossibleSuccessors(current).stream().filter(s -> !result.contains(s)).forEach(workingList::push);
+        }
+
+        List<State> toRemove = new ArrayList<>();
+        states.stream().filter(s -> !result.contains(s)).forEach(toRemove::add);
+
+        List<Transition> transitionsToRemove = new ArrayList<>();
+
+        toRemove.forEach(s -> {
+            states.remove(s);
+            finalStates.remove(s);
+            List<Transition> sTransitions = transitions.stream().filter(t -> t.getStart().equals(s) || t.getEnd().equals(s)).collect(Collectors.toList());
+            transitionsToRemove.addAll(sTransitions);
+        });
+
+        transitions.removeAll(transitionsToRemove);
     }
 
     private void fillInverseMapping() {
@@ -45,17 +63,17 @@ public class DFA extends NFA { //TODO: copy all,
 
     private void markDistinctPairs() {
         states.stream().filter(finalStates::contains).forEach(f ->
-            states.stream().filter(s -> !finalStates.contains(s)).forEach(nf -> {
-                if (!f.equals(nf)) {
-                    markPairWithPredecessors(new UnorderedPair<>(f, nf));
-                }
-            }));
+                states.stream().filter(s -> !finalStates.contains(s)).forEach(nf -> {
+                    if (!f.equals(nf)) {
+                        markPairWithPredecessors(new UnorderedPair<>(f, nf));
+                    }
+                }));
     }
 
     private void markPairWithPredecessors(UnorderedPair<State> pair) {
         if (distinctPairs.contains(pair)) return;
         distinctPairs.add(pair);
-        if(inverseMapping.get(pair) == null) return;
+        if (inverseMapping.get(pair) == null) return;
         inverseMapping.get(pair).forEach(this::markPairWithPredecessors);
     }
 
