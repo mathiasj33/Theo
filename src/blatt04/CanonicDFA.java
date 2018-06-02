@@ -19,9 +19,10 @@ public class CanonicDFA {
         scanner.close();
     }
 
-    private static DFA canonicDFA(DFA d) {
-        //TODO
-        return null;
+    public static DFA canonicDFA(DFA d) {
+        d.minimize();
+        d.renameToCanonic();
+        return d;
     }
 
 }

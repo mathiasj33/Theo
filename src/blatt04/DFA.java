@@ -107,6 +107,34 @@ public class DFA extends NFA {
         }
     }
 
+    public void renameToCanonic() {
+        states.forEach(s -> s.setName("unnamed"));
+        Set<State> named = new HashSet<>();
+        Queue<Pair<State, String>> workingList = new LinkedList<>();
+        workingList.add(new Pair<>(startState, ""));
+        while (!workingList.isEmpty()) {
+            Pair<State, String> current = workingList.remove();
+            String name = current.b.equals("") ? "eps" : current.b;
+            current.a.setName(name);
+            named.add(current.a);
+
+            for (Transition t : transitions) {
+                if(!t.getStart().equals(current.a)) continue;
+                String newName = current.b + t.getLabel();
+                if (named.contains(t.getEnd())) {
+                    String endName = t.getEnd().getName();
+                    if(endName.equals("eps")) endName = "";
+                    if(endName.length() < newName.length()) continue;
+                    if(endName.compareTo(newName) < 0) continue;
+                    t.getEnd().setName(newName);
+                }
+                else if(!named.contains(t.getEnd())){
+                    workingList.add(new Pair<>(t.getEnd(), newName));
+                }
+            }
+        }
+    }
+
     /**
      * Returns the successor of a state-letter pair.
      * It surely exists, because the transition relation was checked to be total in checkValidDFA.
