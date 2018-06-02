@@ -127,6 +127,10 @@ public class DFA extends NFA {
                     stateNode.cost = newCost;
                     stateNode.name = currentNode.name + t.getLabel();
                     openQueue.add(stateNode);
+                } else if (newCost == stateNode.cost) {
+                    if(stateNode.name.compareTo(currentNode.name + t.getLabel()) > 0) {
+                        stateNode.name = currentNode.name + t.getLabel();
+                    }
                 }
             }
             closedSet.add(currentNode);
