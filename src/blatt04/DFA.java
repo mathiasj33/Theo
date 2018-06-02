@@ -107,6 +107,34 @@ public class DFA extends NFA {
         }
     }
 
+    public void renameToCanonic() {
+        Set<DijsktraNode> closedSet = new HashSet<>();
+        Queue<DijsktraNode> openQueue = new PriorityQueue<>();
+        Map<State, DijsktraNode> nodeMapping = new HashMap<>();
+        openQueue.add(new DijsktraNode(startState, 0, ""));
+        states.stream().filter(s -> !s.equals(startState))
+                .forEach(s -> openQueue.add(new DijsktraNode(s, Integer.MAX_VALUE, "NOT_INIT")));
+        openQueue.forEach(dn -> nodeMapping.put(dn.state, dn));
+        while(!openQueue.isEmpty()) {
+            DijsktraNode currentNode = openQueue.poll();
+            for (Transition t : transitions) {
+                if(!t.getStart().equals(currentNode.state)) continue;
+                int newCost = currentNode.cost + 1;
+                DijsktraNode stateNode = nodeMapping.get(t.getEnd());
+                if(closedSet.contains(stateNode)) continue;
+                if(newCost < stateNode.cost) {
+                    openQueue.remove(stateNode);
+                    stateNode.cost = newCost;
+                    stateNode.name = currentNode.name + t.getLabel();
+                    openQueue.add(stateNode);
+                }
+            }
+            closedSet.add(currentNode);
+        }
+
+        closedSet.forEach(dn -> dn.state.setName(dn.name.equals("") ? "eps" : dn.name));
+    }
+
     /**
      * Returns the successor of a state-letter pair.
      * It surely exists, because the transition relation was checked to be total in checkValidDFA.
