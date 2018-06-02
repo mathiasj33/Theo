@@ -108,31 +108,35 @@ public class DFA extends NFA {
     }
 
     public void renameToCanonic() {
-        states.forEach(s -> s.setName("unnamed"));
-        Set<State> named = new HashSet<>();
-        Queue<Pair<State, String>> workingList = new LinkedList<>();
-        workingList.add(new Pair<>(startState, ""));
-        while (!workingList.isEmpty()) {
-            Pair<State, String> current = workingList.remove();
-            String name = current.b.equals("") ? "eps" : current.b;
-            current.a.setName(name);
-            named.add(current.a);
-
+        Set<DijsktraNode> closedSet = new HashSet<>();
+        Queue<DijsktraNode> openQueue = new PriorityQueue<>();
+        Map<State, DijsktraNode> nodeMapping = new HashMap<>();
+        openQueue.add(new DijsktraNode(startState, 0, ""));
+        states.stream().filter(s -> !s.equals(startState))
+                .forEach(s -> openQueue.add(new DijsktraNode(s, Integer.MAX_VALUE, "NOT_INIT")));
+        openQueue.forEach(dn -> nodeMapping.put(dn.state, dn));
+        while(!openQueue.isEmpty()) {
+            DijsktraNode currentNode = openQueue.poll();
             for (Transition t : transitions) {
-                if(!t.getStart().equals(current.a)) continue;
-                String newName = current.b + t.getLabel();
-                if (named.contains(t.getEnd())) {
-                    String endName = t.getEnd().getName();
-                    if(endName.equals("eps")) endName = "";
-                    if(endName.length() < newName.length()) continue;
-                    if(endName.compareTo(newName) < 0) continue;
-                    t.getEnd().setName(newName);
-                }
-                else if(!named.contains(t.getEnd())){
-                    workingList.add(new Pair<>(t.getEnd(), newName));
+                if(!t.getStart().equals(currentNode.state)) continue;
+                int newCost = currentNode.cost + 1;
+                DijsktraNode stateNode = nodeMapping.get(t.getEnd());
+                if(closedSet.contains(stateNode)) continue;
+                if(newCost < stateNode.cost) {
+                    openQueue.remove(stateNode);
+                    stateNode.cost = newCost;
+                    stateNode.name = currentNode.name + t.getLabel();
+                    openQueue.add(stateNode);
+                } else if (newCost == stateNode.cost) {
+                    if(stateNode.name.compareTo(currentNode.name + t.getLabel()) > 0) {
+                        stateNode.name = currentNode.name + t.getLabel();
+                    }
                 }
             }
+            closedSet.add(currentNode);
         }
+
+        closedSet.forEach(dn -> dn.state.setName(dn.name.equals("") ? "eps" : dn.name));
     }
 
     /**
