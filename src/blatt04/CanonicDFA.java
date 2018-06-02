@@ -20,7 +20,7 @@ public class CanonicDFA {
     }
 
     public static DFA canonicDFA(DFA d) {
-        d.minimize();
+        //d.minimize();
         d.renameToCanonic();
         return d;
     }
