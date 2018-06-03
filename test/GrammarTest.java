@@ -232,5 +232,14 @@ public class GrammarTest {
         assertFalse(g.containsWord("bc"));
         assertFalse(g.containsWord("bba"));
         assertFalse(g.containsWord("bbaba"));
+
+        g = TestUtils.loadGrammar("test_res/7.4");
+        g.convertToChomsky();
+        assertTrue(g.containsWord("ccaab"));
+        assertTrue(g.containsWord("aabcc"));
+        assertTrue(g.containsWord("aaba"));
+        assertFalse(g.containsWord(""));
+        assertFalse(g.containsWord("cb"));
+        assertFalse(g.containsWord("aab"));
     }
 }

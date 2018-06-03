@@ -176,7 +176,8 @@ public class Grammar {
                 if (nonTerminals.contains(c)) {
                     newRight.append(c);
                 } else {
-                    Optional<Character> directNT = getDirectNT(c);
+                    Optional<Character> directNT = newProductions.stream().filter(prod -> prod.right.charAt(0) == c)
+                            .map(prod -> prod.left.charAt(0)).findFirst();
                     if(directNT.isPresent()) {
                         newRight.append(directNT.get());
                     } else {
@@ -192,11 +193,6 @@ public class Grammar {
         }
         nonTerminals.addAll(newNTs);
         productions.addAll(newProductions);
-    }
-
-    private Optional<Character> getDirectNT(char terminal) {
-        return productions.stream().filter(p -> p.right.length() == 1 && p.right.charAt(0) == terminal)
-                .map(p -> p.left.charAt(0)).findFirst();
     }
 
     public void decreaseProductionRightSize() {
