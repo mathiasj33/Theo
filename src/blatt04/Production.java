@@ -1,4 +1,6 @@
+import java.awt.*;
 import java.util.*;
+import java.util.List;
 import java.util.stream.Collectors;
 
 public class Production {
@@ -61,10 +63,22 @@ public class Production {
     @Override
     public String toString() {
         if (right.isEmpty()) {
-            return left + " \u2192 " + "\u03B5"; //print the greek letter epsilon for empty right side
+            return charsToString(left) + " \u2192 " + "\u03B5"; //print the greek letter epsilon for empty right side
         } else {
-            return left + " \u2192 " + right;
+            return charsToString(left) + " \u2192 " + charsToString(right) + "  HC: " + hashCode();
         }
+    }
+
+    private String charsToString(String s) {
+        StringBuilder builder = new StringBuilder();
+        for (char c : s.toCharArray()) {
+            if(c < 32 || c > 126) {
+                String newString = "" + (int) c;
+                builder.append(newString.substring(newString.length() - 1, newString.length()));
+            }
+            else builder.append(c);
+        }
+        return builder.toString();
     }
 
     public boolean isEpsilon() {

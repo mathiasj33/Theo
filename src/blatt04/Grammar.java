@@ -158,7 +158,7 @@ public class Grammar {
                 .stream().filter(nonTerminals::contains).collect(Collectors.toSet());
     }
 
-    public void addCNFNTs() {
+    public void addDirectNTs() {
         List<Character> newNTs = new ArrayList<>();
         List<Production> newProductions = new ArrayList<>();
         for (Production p : productions) {
@@ -167,20 +167,18 @@ public class Grammar {
             for (char c : p.right.toCharArray()) {
                 if (nonTerminals.contains(c)) {
                     newRight.append(c);
-                    continue;
                 } else {
-                    /*if(getDirectNT(c)) {
-
+                    Optional<Character> directNT = getDirectNT(c);
+                    if(directNT.isPresent()) {
+                        newRight.append(directNT);
                     } else {
-
-                    }*/
-                    char nt = newNT;
-                    newNT--;
-                    newNTs.add(nt);
-                    newProductions.add(new Production("" + newNT, "" + c));
-                    newRight.append(nt);
+                        char nt = newNT;
+                        newNT--;
+                        newNTs.add(nt);
+                        newProductions.add(new Production("" + nt, "" + c));
+                        newRight.append(nt);
+                    }
                 }
-                newRight.append(c);
             }
             p.right = newRight.toString();
         }
@@ -188,8 +186,35 @@ public class Grammar {
         productions.addAll(newProductions);
     }
 
-    private boolean existsTerminalRule(char terminal) {
-        return productions.stream().anyMatch(p -> p.right.length() == 1 && p.right.charAt(0) == terminal);
+    private Optional<Character> getDirectNT(char terminal) {
+        return productions.stream().filter(p -> p.right.length() == 1 && p.right.charAt(0) == terminal)
+                .map(p -> p.left.charAt(0)).findFirst();
+    }
+
+    public void decreaseProductionRightSize() {
+        List<Production> newProductions = new ArrayList<>();
+        List<Production> toRemove = new ArrayList<>();
+        for (Production p : productions) {
+            if(p.right.length() <= 2) continue;
+            toRemove.add(p);
+            newProductions.addAll(decreaseRightSize(p));
+        }
+        productions.removeAll(toRemove);
+        productions.addAll(newProductions);
+    }
+
+    private List<Production> decreaseRightSize(Production p) {
+        List<Production> newProductions = new ArrayList<>();
+        if(p.right.length() <= 2) {
+            newProductions.add(p);
+            return newProductions;
+        }
+        char nt = newNT;
+        newNT--;
+        nonTerminals.add(nt);
+        newProductions.add(new Production(p.left, p.right.substring(0,1) + nt));
+        newProductions.addAll(decreaseRightSize(new Production("" + nt, p.right.substring(1, p.right.length()))));
+        return newProductions;
     }
 
     public void eliminateEpsilon() {
@@ -200,6 +225,7 @@ public class Grammar {
         }
         productions.addAll(newProductions);
         productions.removeAll(productions.stream().filter(p -> p.isEpsilon() && p.left.charAt(0) != startingSymbol).collect(Collectors.toSet()));
+        productions = new HashSet<>(productions); //Hack as the hashset somehow allowed duplicates
     }
 
     private Set<Character> findAllEpsilonNTs() {

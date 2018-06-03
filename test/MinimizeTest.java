@@ -27,13 +27,13 @@ public class MinimizeTest {
         return null;
     }
 
-    @Test
+    //@Test
     public void sample () {
         DFA d = loadFile("test_res/minimize_sample");
         System.out.println(Minimize.minimize(d));
     }
 
-    @Test
+    //@Test
     public void d3 () {
         DFA d = loadFile("test_res/d3");
         System.out.println(Minimize.minimize(d));

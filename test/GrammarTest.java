@@ -76,22 +76,37 @@ public class GrammarTest {
     }
 
     @Test
-    public void addCNFNTs() {
+    public void addDirectNTs() {
         Grammar g = loadGrammar(CHOMSKY_GRAMMAR);
         g.clean();
         Set<Production> expectedProductions = new HashSet<>(g.productions);
         expectedProductions.remove(new Production("S", "aB"));
-        expectedProductions.add(new Production("S", (char) 65535 + "B"));
-        expectedProductions.add(new Production("" + (char) 65535, "a"));
-
-        Set<Character> expectedAlphabet = new HashSet<>(g.alphabet);
-        expectedAlphabet.add((char) 65535);
+        expectedProductions.add(new Production("S", '\uffff' + "B"));
+        expectedProductions.add(new Production("" + '\uffff', "a"));
 
         Set<Character> expectedNTs = new HashSet<>(g.nonTerminals);
-        expectedNTs.add((char) 65535);
+        expectedNTs.add('\uffff');
 
-        g.addCNFNTs();
-        assertEquals(expectedAlphabet, g.alphabet);
+        g.addDirectNTs();
+        assertEquals(expectedNTs, g.nonTerminals);
+        assertEquals(expectedProductions, g.productions);
+    }
+
+    @Test
+    public void decreaseProductionRightSize() {
+        Grammar g = loadGrammar(CHOMSKY_GRAMMAR);
+        g.clean();
+        g.addDirectNTs();
+
+        Set<Production> expectedProductions = new HashSet<>(g.productions);
+        expectedProductions.remove(new Production("S", "ASA"));
+        expectedProductions.add(new Production("S","A" + (char) ('\uffff' - 1)));
+        expectedProductions.add(new Production("" + (char) ('\uffff' -1), "SA"));
+
+        Set<Character> expectedNTs = new HashSet<>(g.nonTerminals);
+        expectedNTs.add((char) ('\uffff' -1));
+
+        g.decreaseProductionRightSize();
         assertEquals(expectedNTs, g.nonTerminals);
         assertEquals(expectedProductions, g.productions);
     }
@@ -114,24 +129,38 @@ public class GrammarTest {
         Grammar g = new Grammar(alphabet, nonTerminals, productions, 'S');
         g.eliminateEpsilon();
 
-        Set<Production> expected = new HashSet<>();
-        expected.add(new Production("S", "AB"));
-        expected.add(new Production("S", "A"));
-        expected.add(new Production("S", "B"));
-        expected.add(new Production("S", ""));
-        expected.add(new Production("A", "aAA"));
-        expected.add(new Production("A", "B"));
-        expected.add(new Production("A", "aA"));
-        expected.add(new Production("A", "a"));
-        expected.add(new Production("B", "bBS"));
-        expected.add(new Production("B", "bS"));
-        expected.add(new Production("B", "b"));
-        expected.add(new Production("B", "bB"));
+        Set<Production> expectedProductions = new HashSet<>();
+        expectedProductions.add(new Production("S", "AB"));
+        expectedProductions.add(new Production("S", "A"));
+        expectedProductions.add(new Production("S", "B"));
+        expectedProductions.add(new Production("S", ""));
+        expectedProductions.add(new Production("A", "aAA"));
+        expectedProductions.add(new Production("A", "B"));
+        expectedProductions.add(new Production("A", "aA"));
+        expectedProductions.add(new Production("A", "a"));
+        expectedProductions.add(new Production("B", "bBS"));
+        expectedProductions.add(new Production("B", "bS"));
+        expectedProductions.add(new Production("B", "b"));
+        expectedProductions.add(new Production("B", "bB"));
 
-        assertEquals(expected, g.productions);
+        assertEquals(expectedProductions, g.productions);
 
         g = loadGrammar(CHOMSKY_GRAMMAR);
+        g.clean();
+        g.addDirectNTs();
+        g.decreaseProductionRightSize();
 
+        expectedProductions = new HashSet<>(g.productions);
+        char xa = '\uffff';
+        char xsa = (char) (xa - 1);
+        expectedProductions.add(new Production("S", ""+xsa));
+        expectedProductions.add(new Production("S", ""+xa));
+        expectedProductions.remove(new Production("B", ""));
+        expectedProductions.add(new Production("" + xsa, "S"));
+
+        g.eliminateEpsilon();
+
+        assertEquals(expectedProductions, g.productions);
     }
 
     //@Test
