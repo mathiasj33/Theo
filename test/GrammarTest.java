@@ -163,6 +163,64 @@ public class GrammarTest {
         assertEquals(expectedProductions, g.productions);
     }
 
+    @Test
+    public void findChainRules() {
+        Grammar g = loadGrammar(CHOMSKY_GRAMMAR);
+        g.clean();
+        g.addDirectNTs();
+        g.decreaseProductionRightSize();
+        g.eliminateEpsilon();
+
+        Set<Production> expectedChainRules = new HashSet<>();
+        char xa = '\uffff';
+        char xsa = (char) (xa - 1);
+        expectedChainRules.add(new Production("S", "" + xsa));
+        expectedChainRules.add(new Production("S", "" + xa));
+        expectedChainRules.add(new Production("A", "B"));
+        expectedChainRules.add(new Production("A", "S"));
+        expectedChainRules.add(new Production("" + xsa, "S"));
+
+        expectedChainRules.add(new Production("S", "S"));
+        expectedChainRules.add(new Production("A", "" + xsa));
+        expectedChainRules.add(new Production("A", "" + xa));
+        expectedChainRules.add(new Production(""+xsa, "" + xsa));
+        expectedChainRules.add(new Production(""+xsa, "" + xa));
+
+        assertEquals(expectedChainRules, g.findChainRules());
+    }
+
+    @Test
+    public void eliminateChains() {
+        Grammar g = loadGrammar(CHOMSKY_GRAMMAR);
+        g.clean();
+        g.addDirectNTs();
+        g.decreaseProductionRightSize();
+        g.eliminateEpsilon();
+
+        Set<Production> expectedProductions = new HashSet<>(g.productions);
+        char xa = '\uffff';
+        char xsa = (char) (xa - 1);
+        expectedProductions.remove(new Production("S",""+xsa));
+        expectedProductions.remove(new Production("S",""+xa));
+        expectedProductions.add(new Production("S", "SA"));
+        expectedProductions.add(new Production("S", "a"));
+        expectedProductions.remove(new Production("A", "B"));
+        expectedProductions.remove(new Production("A", "S"));
+        expectedProductions.add(new Production("A", "b"));
+        expectedProductions.add(new Production("A", "A"+xsa));
+        expectedProductions.add(new Production("A", "SA"));
+        expectedProductions.add(new Production("A", xa+"B"));
+        expectedProductions.add(new Production("A", "a"));
+        expectedProductions.remove(new Production("" + xsa, "S"));
+        expectedProductions.add(new Production("" + xsa, "A"+xsa));
+        expectedProductions.add(new Production("" + xsa, xa+"B"));
+        expectedProductions.add(new Production("" + xsa, "a"));
+
+        g.eliminateChains();
+
+        assertEquals(expectedProductions, g.productions);
+    }
+
     //@Test
     public void containsWord() {
         Set<Character> alphabet = new HashSet<>();

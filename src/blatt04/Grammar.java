@@ -234,6 +234,34 @@ public class Grammar {
         return findCharactersSatisfying(epsilonNTs, this::isComposedOfCharacters, true);
     }
 
+    public void eliminateChains() {
+        Set<Production> chainRules = findChainRules();
+        productions.removeAll(chainRules);
+        List<Production> toAdd = new ArrayList<>();
+        for (Production chainRule : chainRules) {
+            productions.stream().filter(p -> p.left.equals(chainRule.right)).forEach(p -> toAdd.add(new Production(chainRule.left, p.right)));
+        }
+        productions.addAll(toAdd);
+    }
+
+    public Set<Production> findChainRules() {
+        Set<Production> chainRules = productions.stream().filter(p ->
+                p.right.length() == 1 && nonTerminals.contains(p.right.charAt(0))).collect(Collectors.toSet());
+        Set<Character> chainNTs = chainRules.stream().map(p -> p.left.charAt(0)).collect(Collectors.toSet());
+        Set<Production> toAdd = new HashSet<>();
+        do {
+            chainRules.addAll(toAdd);
+            toAdd.clear();
+            for (Production p : productions) {
+                if (p.right.length() == 1 && chainNTs.contains(p.right.charAt(0))) {
+                    toAdd.addAll(chainRules.stream().filter(cr -> cr.left.equals(p.right))
+                            .map(oldProduction -> new Production(p.left, oldProduction.right)).collect(Collectors.toSet()));
+                }
+            }
+        } while(!chainRules.containsAll(toAdd));
+        return chainRules;
+    }
+
     private Set<Character> findCharactersSatisfying(Set<Character> base, BiPredicate<String, Set<Character>> condition, boolean addLeft) {
         Set<Character> toAdd = new HashSet<>();
         do {

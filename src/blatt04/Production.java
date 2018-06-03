@@ -65,7 +65,7 @@ public class Production {
         if (right.isEmpty()) {
             return charsToString(left) + " \u2192 " + "\u03B5"; //print the greek letter epsilon for empty right side
         } else {
-            return charsToString(left) + " \u2192 " + charsToString(right) + "  HC: " + hashCode();
+            return charsToString(left) + " \u2192 " + charsToString(right);
         }
     }
 
