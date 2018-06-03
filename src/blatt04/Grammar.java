@@ -121,6 +121,14 @@ public class Grammar {
         checkValidGrammar();
     }
 
+    public void convertToChomsky() {
+        clean();
+        addDirectNTs();
+        decreaseProductionRightSize();
+        eliminateEpsilon();
+        eliminateChains();
+    }
+
     public void clean() {
         eliminateNonGeneratingNTs();
         eliminateNonReachableNTs();
@@ -170,7 +178,7 @@ public class Grammar {
                 } else {
                     Optional<Character> directNT = getDirectNT(c);
                     if(directNT.isPresent()) {
-                        newRight.append(directNT);
+                        newRight.append(directNT.get());
                     } else {
                         char nt = newNT;
                         newNT--;
@@ -290,10 +298,12 @@ public class Grammar {
     }
 
     public boolean containsWord(String word) {
-        return false;
+        CYKChart chart = new CYKChart(this, word);
+        chart.fillChart();
+        return chart.canProduce();
     }
 
-    private boolean isStartEpsilon() {
+    public boolean isStartEpsilon() {
         return productions.stream().anyMatch(p -> p.left.charAt(0) == startingSymbol && p.right.equals(""));
     }
 

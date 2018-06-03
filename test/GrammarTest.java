@@ -1,10 +1,6 @@
 import org.junit.Test;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.util.HashSet;
-import java.util.Scanner;
 import java.util.Set;
 
 import static org.junit.Assert.*;
@@ -13,20 +9,9 @@ public class GrammarTest {
 
     private static final String CHOMSKY_GRAMMAR = "test_res/chomskyExample.txt";
 
-    private Grammar loadGrammar(String path) {
-        Scanner scanner = null;
-        try {
-            scanner = new Scanner(new FileInputStream(new File(path)));
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-            fail("Couldn't find grammar");
-        }
-        return Grammar.parse(scanner);
-    }
-
     @Test
     public void findGenerating() {
-        Grammar g = loadGrammar(CHOMSKY_GRAMMAR);
+        Grammar g = TestUtils.loadGrammar(CHOMSKY_GRAMMAR);
         Set<Character> expected = new HashSet<>();
         expected.add('A');
         expected.add('B');
@@ -37,7 +22,7 @@ public class GrammarTest {
 
     @Test
     public void eliminateNonGenerating() {
-        Grammar g = loadGrammar(CHOMSKY_GRAMMAR);
+        Grammar g = TestUtils.loadGrammar(CHOMSKY_GRAMMAR);
         Set<Production> expectedProductions = new HashSet<>(g.productions);
         expectedProductions.remove(new Production("C", "aC"));
         expectedProductions.remove(new Production("A", "CB"));
@@ -52,7 +37,7 @@ public class GrammarTest {
 
     @Test
     public void findReachable() {
-        Grammar g = loadGrammar(CHOMSKY_GRAMMAR);
+        Grammar g = TestUtils.loadGrammar(CHOMSKY_GRAMMAR);
         g.eliminateNonGeneratingNTs();
         Set<Character> expected = new HashSet<>();
         expected.add('S');
@@ -63,7 +48,7 @@ public class GrammarTest {
 
     @Test
     public void eliminateNonReachable() {
-        Grammar g = loadGrammar(CHOMSKY_GRAMMAR);
+        Grammar g = TestUtils.loadGrammar(CHOMSKY_GRAMMAR);
         g.eliminateNonGeneratingNTs();
         Set<Production> expectedProductions = new HashSet<>(g.productions);
         expectedProductions.remove(new Production("D", "a"));
@@ -77,7 +62,7 @@ public class GrammarTest {
 
     @Test
     public void addDirectNTs() {
-        Grammar g = loadGrammar(CHOMSKY_GRAMMAR);
+        Grammar g = TestUtils.loadGrammar(CHOMSKY_GRAMMAR);
         g.clean();
         Set<Production> expectedProductions = new HashSet<>(g.productions);
         expectedProductions.remove(new Production("S", "aB"));
@@ -94,7 +79,7 @@ public class GrammarTest {
 
     @Test
     public void decreaseProductionRightSize() {
-        Grammar g = loadGrammar(CHOMSKY_GRAMMAR);
+        Grammar g = TestUtils.loadGrammar(CHOMSKY_GRAMMAR);
         g.clean();
         g.addDirectNTs();
 
@@ -145,7 +130,7 @@ public class GrammarTest {
 
         assertEquals(expectedProductions, g.productions);
 
-        g = loadGrammar(CHOMSKY_GRAMMAR);
+        g = TestUtils.loadGrammar(CHOMSKY_GRAMMAR);
         g.clean();
         g.addDirectNTs();
         g.decreaseProductionRightSize();
@@ -165,7 +150,7 @@ public class GrammarTest {
 
     @Test
     public void findChainRules() {
-        Grammar g = loadGrammar(CHOMSKY_GRAMMAR);
+        Grammar g = TestUtils.loadGrammar(CHOMSKY_GRAMMAR);
         g.clean();
         g.addDirectNTs();
         g.decreaseProductionRightSize();
@@ -191,7 +176,7 @@ public class GrammarTest {
 
     @Test
     public void eliminateChains() {
-        Grammar g = loadGrammar(CHOMSKY_GRAMMAR);
+        Grammar g = TestUtils.loadGrammar(CHOMSKY_GRAMMAR);
         g.clean();
         g.addDirectNTs();
         g.decreaseProductionRightSize();
@@ -221,7 +206,7 @@ public class GrammarTest {
         assertEquals(expectedProductions, g.productions);
     }
 
-    //@Test
+    @Test
     public void containsWord() {
         Set<Character> alphabet = new HashSet<>();
         alphabet.add('a');
@@ -235,6 +220,7 @@ public class GrammarTest {
         productions.add(new Production("S", "aSa"));
         productions.add(new Production("S", "bSb"));
         Grammar g = new Grammar(alphabet, nonTerminals, productions, 'S');
+        g.convertToChomsky();
 
         assertTrue(g.containsWord(""));
         assertTrue(g.containsWord("a"));
