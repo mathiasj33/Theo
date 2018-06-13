@@ -12,8 +12,8 @@ public class ProductionTest {
     @Test
     public void getAllEpsilonCombinations() {
         Production p = new Production("A", "aAA");
-        Set<Character> epsilonNTs = new HashSet<>();
-        epsilonNTs.add('A');
+        Set<Atom> epsilonNTs = new HashSet<>();
+        epsilonNTs.add(new NonTerminal("A"));
         Set<Production> expected = new HashSet<>();
         Production p1 = new Production("A", "aA");
         Production p2 = new Production("A", "a");
@@ -23,7 +23,7 @@ public class ProductionTest {
         expected.add(p3);
         assertEquals(expected, p.getAllEpsilonCombinations(epsilonNTs));
 
-        epsilonNTs.add('B');
+        epsilonNTs.add(new NonTerminal("B"));
         expected.clear();
         p1 = new Production("B", "bS");
         p2 = new Production("B", "bBS");

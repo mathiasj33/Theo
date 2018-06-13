@@ -1,13 +1,20 @@
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 public class Production implements Comparable<Production> {
-    public final List<NonTerminal> left;
-    public final List<Atom> right;
+    public List<NonTerminal> left;
+    public List<Atom> right;
+
+    Production(String l, String r) {
+        left = new ArrayList<>();
+        for (char c : l.toCharArray()) {
+            left.add(new NonTerminal("" + c));
+        }
+        right = new ArrayList<>();
+        for (char c : r.toCharArray()) {
+            Atom a = Character.isUpperCase(c) ? new NonTerminal("" + c) : new Terminal(c);
+            right.add(a);
+        }
+    }
 
     Production(NonTerminal left, Atom right) {
         this(Collections.singletonList(left), Collections.singletonList(right));
@@ -39,6 +46,54 @@ public class Production implements Comparable<Production> {
         } else {
             this.right = Collections.unmodifiableList(new ArrayList<>(right));
         }
+    }
+
+    public Set<Production> getAllEpsilonCombinations(Set<Atom> epsilonNTs) {
+        Set<Production> newProductions = new HashSet<>();
+        List<Integer> ntPositions = getNTPositions(epsilonNTs);
+        if(ntPositions.isEmpty()) return new HashSet<>();
+        List<Set<Integer>> powerNTs = powerSet(ntPositions);
+        for (Set<Integer> s : powerNTs) {
+            newProductions.add(generateNewProduction(s));
+        }
+        return newProductions;
+    }
+
+    private List<Integer> getNTPositions(Set<Atom> epsilonNTs) {
+        List<Integer> positions = new ArrayList<>();
+        for (int i = 0; i < right.size(); i++) {
+            if(epsilonNTs.contains(right.get(i))) positions.add(i);
+        }
+        return positions;
+    }
+
+    public Production generateNewProduction(Set<Integer> set) {
+        List<Atom> newRight = new ArrayList<>();
+        for(int i = 0; i < right.size(); i++) {
+            if(!set.contains(i)) newRight.add(right.get(i));
+        }
+        return new Production(left, newRight);
+    }
+
+    public static <E> List<Set<E>> powerSet(List<E> original) {
+        List<Set<E>> newList = new ArrayList<>();
+        if(original.size() == 1) {
+            Set<E> trivialSet = new HashSet<>();
+            trivialSet.add(original.get(0));
+            newList.add(trivialSet);
+            newList.add(new HashSet<>());
+            return newList;
+        }
+        E first = original.remove(0);
+        List<Set<E>> recursive = powerSet(original);
+        for (Set<E> s : recursive) {
+            newList.add(s);
+            Set<E> newSet = new HashSet<>();
+            newSet.addAll(s);
+            newSet.add(first);
+            newList.add(newSet);
+        }
+        return newList;
     }
 
     @Override
@@ -79,7 +134,7 @@ public class Production implements Comparable<Production> {
         return right.get(0);
     }
 
-    public boolean isEpsilonProducing() {
+    public boolean isEpsilon() {
         return right.size() == 1 && right.get(0) instanceof Terminal &&
                 ((Terminal) right.get(0)).isEpsilon();
     }

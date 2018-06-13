@@ -1,11 +1,5 @@
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Objects;
-import java.util.Scanner;
-import java.util.Set;
-import java.util.TreeSet;
+import java.util.*;
+import java.util.function.BiPredicate;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -14,17 +8,17 @@ public class Grammar {
     private static final Pattern PRODUCTION_PATTERN = Pattern.compile(" +");
 
     public final Set<Terminal> alphabet;
-    public final Set<NonTerminal> nonTerminals;
-    public final Set<Production> productions;
-    public final NonTerminal startSymbol;
+    public Set<NonTerminal> nonTerminals;
+    public Set<Production> productions;
+    public NonTerminal startSymbol;
 
     public Grammar(Set<Terminal> alphabet, Set<NonTerminal> nonTerminals, Set<Production> productions,
                    NonTerminal startSymbol) {
-        this.alphabet = Collections.unmodifiableSet(new HashSet<>(Objects.requireNonNull(alphabet)));
+        this.alphabet = new HashSet<>(Objects.requireNonNull(alphabet));
         this.nonTerminals =
-                Collections.unmodifiableSet(new HashSet<>(Objects.requireNonNull(nonTerminals)));
+                new HashSet<>(Objects.requireNonNull(nonTerminals));
         this.productions =
-                Collections.unmodifiableSet(new HashSet<>(Objects.requireNonNull(productions)));
+                new HashSet<>(Objects.requireNonNull(productions));
         this.startSymbol = startSymbol;
         checkValidGrammar();
     }
@@ -37,29 +31,28 @@ public class Grammar {
     }
 
     public void addDirectNTs() {
-        List<Character> newNTs = new ArrayList<>();
+        List<NonTerminal> newNTs = new ArrayList<>();
         List<Production> newProductions = new ArrayList<>();
         for (Production p : productions) {
-            if (p.right.length() < 2) continue;
-            StringBuilder newRight = new StringBuilder();
-            for (char c : p.right.toCharArray()) {
-                if (nonTerminals.contains(c)) {
-                    newRight.append(c);
+            if (p.right.size() < 2) continue;
+            List<Atom> newRight = new ArrayList<>();
+            for (Atom a : p.right) {
+                if (!a.isTerminal()) {
+                    newRight.add(a);
                 } else {
-                    Optional<Character> directNT = newProductions.stream().filter(prod -> prod.right.charAt(0) == c)
-                            .map(prod -> prod.left.charAt(0)).findFirst();
+                    Optional<NonTerminal> directNT = newProductions.stream().filter(prod -> prod.right.get(0).equals(a))
+                            .map(prod -> prod.left.get(0)).findFirst();
                     if(directNT.isPresent()) {
-                        newRight.append(directNT.get());
+                        newRight.add(directNT.get());
                     } else {
-                        char nt = newNT;
-                        newNT--;
+                        NonTerminal nt = new NonTerminal(Util.cnfLiteralName(a));
                         newNTs.add(nt);
-                        newProductions.add(new Production("" + nt, "" + c));
-                        newRight.append(nt);
+                        newProductions.add(new Production(nt, a));
+                        newRight.add(nt);
                     }
                 }
             }
-            p.right = newRight.toString();
+            p.right = newRight;
         }
         nonTerminals.addAll(newNTs);
         productions.addAll(newProductions);
@@ -69,7 +62,7 @@ public class Grammar {
         List<Production> newProductions = new ArrayList<>();
         List<Production> toRemove = new ArrayList<>();
         for (Production p : productions) {
-            if(p.right.length() <= 2) continue;
+            if(p.right.size() <= 2) continue;
             toRemove.add(p);
             newProductions.addAll(decreaseRightSize(p));
         }
@@ -79,32 +72,34 @@ public class Grammar {
 
     private List<Production> decreaseRightSize(Production p) {
         List<Production> newProductions = new ArrayList<>();
-        if(p.right.length() <= 2) {
+        if(p.right.size() <= 2) {
             newProductions.add(p);
             return newProductions;
         }
-        char nt = newNT;
-        newNT--;
+        NonTerminal nt = new NonTerminal(Util.cnfChainName(p.right.subList(1, p.right.size())));
         nonTerminals.add(nt);
-        newProductions.add(new Production(p.left, p.right.substring(0,1) + nt));
-        newProductions.addAll(decreaseRightSize(new Production("" + nt, p.right.substring(1, p.right.length()))));
+        List<Atom> newRightSide = new ArrayList<>();
+        newRightSide.add(p.right.get(0));
+        newRightSide.add(nt);
+        newProductions.add(new Production(p.left, newRightSide));
+        newProductions.addAll(decreaseRightSize(new Production(nt, p.right.subList(1, p.right.size()))));
         return newProductions;
     }
 
     public void eliminateEpsilon() {
-        Set<Character> epsilonNTs = findAllEpsilonNTs();
+        Set<Atom> epsilonNTs = findAllEpsilonNTs();
         Set<Production> newProductions = new HashSet<>();
         for (Production p : productions) {
             newProductions.addAll(p.getAllEpsilonCombinations(epsilonNTs));
         }
         productions.addAll(newProductions);
-        productions.removeAll(productions.stream().filter(p -> p.isEpsilon() && p.left.charAt(0) != startingSymbol).collect(Collectors.toSet()));
+        productions.removeAll(productions.stream().filter(p -> p.isEpsilon() && !p.left.get(0).equals(startSymbol)).collect(Collectors.toSet()));
         productions = new HashSet<>(productions); //Hack as the hashset somehow allowed duplicates
     }
 
-    private Set<Character> findAllEpsilonNTs() {
-        Set<Character> epsilonNTs = productions.stream().filter(Production::isEpsilon)
-                .map(p -> p.left.charAt(0)).collect(Collectors.toSet());
+    private Set<Atom> findAllEpsilonNTs() {
+        Set<Atom> epsilonNTs = productions.stream().filter(Production::isEpsilon)
+                .map(p -> p.left.get(0)).collect(Collectors.toSet());
         return findCharactersSatisfying(epsilonNTs, this::isComposedOfCharacters, true);
     }
 
@@ -120,14 +115,14 @@ public class Grammar {
 
     public Set<Production> findChainRules() {
         Set<Production> chainRules = productions.stream().filter(p ->
-                p.right.length() == 1 && nonTerminals.contains(p.right.charAt(0))).collect(Collectors.toSet());
-        Set<Character> chainNTs = chainRules.stream().map(p -> p.left.charAt(0)).collect(Collectors.toSet());
+                p.right.size() == 1 && p.right.get(0) instanceof NonTerminal).collect(Collectors.toSet());
+        Set<Atom> chainNTs = chainRules.stream().map(p -> p.left.get(0)).collect(Collectors.toSet());
         Set<Production> toAdd = new HashSet<>();
         do {
             chainRules.addAll(toAdd);
             toAdd.clear();
             for (Production p : productions) {
-                if (p.right.length() == 1 && chainNTs.contains(p.right.charAt(0))) {
+                if (p.right.size() == 1 && chainNTs.contains(p.right.get(0))) {
                     toAdd.addAll(chainRules.stream().filter(cr -> cr.left.equals(p.right))
                             .map(oldProduction -> new Production(p.left, oldProduction.right)).collect(Collectors.toSet()));
                 }
@@ -136,19 +131,21 @@ public class Grammar {
         return chainRules;
     }
 
-    private Set<Character> findCharactersSatisfying(Set<Character> base, BiPredicate<String, Set<Character>> condition, boolean addLeft) {
-        Set<Character> toAdd = new HashSet<>();
+    private Set<Atom> findCharactersSatisfying(Set<Atom> base, BiPredicate<List<Atom>, Set<Atom>> condition, boolean addLeft) {
+        Set<Atom> toAdd = new HashSet<>();
         do {
             base.addAll(toAdd);
             toAdd.clear();
             for (Production p : productions) {
                 if (addLeft) {
                     if (condition.test(p.right, base)) {
-                        toAdd.add(p.left.charAt(0));
+                        toAdd.add(p.left.get(0));
                     }
                 } else {
-                    if (condition.test(p.left, base)) {
-                        for (char c : p.right.toCharArray()) toAdd.add(c);
+                    List<Atom> pseudoList = new ArrayList<>();
+                    pseudoList.add(p.left.get(0));
+                    if (condition.test(pseudoList, base)) {
+                        toAdd.addAll(p.right);
                     }
                 }
             }
@@ -156,15 +153,8 @@ public class Grammar {
         return base;
     }
 
-    private boolean isComposedOfCharacters(String s, Set<Character> charSet) {
-        for (char c : s.toCharArray()) {
-            if (!charSet.contains(c)) return false;
-        }
-        return true;
-    }
-
-    public boolean isStartEpsilon() {
-        return productions.stream().anyMatch(p -> p.left.charAt(0) == startingSymbol && p.right.equals(""));
+    private boolean isComposedOfCharacters(List<Atom> list, Set<Atom> atoms) {
+        return atoms.containsAll(list);
     }
 
     static Grammar parse(Scanner scanner) {

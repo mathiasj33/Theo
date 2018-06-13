@@ -9,56 +9,56 @@ public class GrammarTest {
 
     private static final String CHOMSKY_GRAMMAR = "test_res/chomskyExample.txt";
 
-    @Test
-    public void findGenerating() {
-        Grammar g = TestUtils.loadGrammar(CHOMSKY_GRAMMAR);
-        Set<Character> expected = new HashSet<>();
-        expected.add('A');
-        expected.add('B');
-        expected.add('D');
-        expected.add('S');
-        assertEquals(expected, g.findGeneratingNTs());
-    }
-
-    @Test
-    public void eliminateNonGenerating() {
-        Grammar g = TestUtils.loadGrammar(CHOMSKY_GRAMMAR);
-        Set<Production> expectedProductions = new HashSet<>(g.productions);
-        expectedProductions.remove(new Production("C", "aC"));
-        expectedProductions.remove(new Production("A", "CB"));
-        expectedProductions.remove(new Production("D", "aSCb"));
-        Set<Character> expectedNTs = new HashSet<>(g.nonTerminals);
-        expectedNTs.remove('C');
-
-        g.eliminateNonGeneratingNTs();
-        assertEquals(expectedNTs, g.nonTerminals);
-        assertEquals(expectedProductions, g.productions);
-    }
-
-    @Test
-    public void findReachable() {
-        Grammar g = TestUtils.loadGrammar(CHOMSKY_GRAMMAR);
-        g.eliminateNonGeneratingNTs();
-        Set<Character> expected = new HashSet<>();
-        expected.add('S');
-        expected.add('A');
-        expected.add('B');
-        assertEquals(expected, g.findReachableNTs());
-    }
-
-    @Test
-    public void eliminateNonReachable() {
-        Grammar g = TestUtils.loadGrammar(CHOMSKY_GRAMMAR);
-        g.eliminateNonGeneratingNTs();
-        Set<Production> expectedProductions = new HashSet<>(g.productions);
-        expectedProductions.remove(new Production("D", "a"));
-        Set<Character> expectedNTs = new HashSet<>(g.nonTerminals);
-        expectedNTs.remove('D');
-
-        g.eliminateNonReachableNTs();
-        assertEquals(expectedNTs, g.nonTerminals);
-        assertEquals(expectedProductions, g.productions);
-    }
+//    @Test
+//    public void findGenerating() {
+//        Grammar g = TestUtils.loadGrammar(CHOMSKY_GRAMMAR);
+//        Set<Character> expected = new HashSet<>();
+//        expected.add('A');
+//        expected.add('B');
+//        expected.add('D');
+//        expected.add('S');
+//        assertEquals(expected, g.findGeneratingNTs());
+//    }
+//
+//    @Test
+//    public void eliminateNonGenerating() {
+//        Grammar g = TestUtils.loadGrammar(CHOMSKY_GRAMMAR);
+//        Set<Production> expectedProductions = new HashSet<>(g.productions);
+//        expectedProductions.remove(new Production("C", "aC"));
+//        expectedProductions.remove(new Production("A", "CB"));
+//        expectedProductions.remove(new Production("D", "aSCb"));
+//        Set<Character> expectedNTs = new HashSet<>(g.nonTerminals);
+//        expectedNTs.remove('C');
+//
+//        g.eliminateNonGeneratingNTs();
+//        assertEquals(expectedNTs, g.nonTerminals);
+//        assertEquals(expectedProductions, g.productions);
+//    }
+//
+//    @Test
+//    public void findReachable() {
+//        Grammar g = TestUtils.loadGrammar(CHOMSKY_GRAMMAR);
+//        g.eliminateNonGeneratingNTs();
+//        Set<Character> expected = new HashSet<>();
+//        expected.add('S');
+//        expected.add('A');
+//        expected.add('B');
+//        assertEquals(expected, g.findReachableNTs());
+//    }
+//
+//    @Test
+//    public void eliminateNonReachable() {
+//        Grammar g = TestUtils.loadGrammar(CHOMSKY_GRAMMAR);
+//        g.eliminateNonGeneratingNTs();
+//        Set<Production> expectedProductions = new HashSet<>(g.productions);
+//        expectedProductions.remove(new Production("D", "a"));
+//        Set<Character> expectedNTs = new HashSet<>(g.nonTerminals);
+//        expectedNTs.remove('D');
+//
+//        g.eliminateNonReachableNTs();
+//        assertEquals(expectedNTs, g.nonTerminals);
+//        assertEquals(expectedProductions, g.productions);
+//    }
 
     @Test
     public void addDirectNTs() {
