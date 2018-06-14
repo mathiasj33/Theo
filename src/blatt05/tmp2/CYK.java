@@ -1,5 +1,5 @@
-import java.io.File;
-import java.io.FileInputStream;
+package tmp2;
+
 import java.io.FileNotFoundException;
 import java.util.Scanner;
 

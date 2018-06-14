@@ -1,3 +1,5 @@
+package tmp2;
+
 public final class Terminal extends Atom {
     private final char letter;
 
