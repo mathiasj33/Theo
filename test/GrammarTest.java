@@ -1,6 +1,4 @@
 import org.junit.Test;
-import tmp2.Grammar;
-import tmp2.Production;
 
 import java.util.HashSet;
 import java.util.Set;

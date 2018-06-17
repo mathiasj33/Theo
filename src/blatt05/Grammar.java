@@ -1,5 +1,3 @@
-package tmp2;
-
 import java.util.*;
 import java.util.function.BiPredicate;
 import java.util.regex.Pattern;
@@ -44,14 +42,14 @@ public class Grammar {
                 } else {
                     Optional<NonTerminal> directNT = newProductions.stream().filter(prod -> prod.right.get(0).equals(a))
                             .map(prod -> prod.left.get(0)).findFirst();
-                    if(directNT.isPresent()) {
+                    /*if(directNT.isPresent()) {
                         newRight.add(directNT.get());
-                    } else {
+                    } else {*/
                         NonTerminal nt = new NonTerminal(Util.cnfLiteralName(a));
                         newNTs.add(nt);
                         newProductions.add(new Production(nt, a));
                         newRight.add(nt);
-                    }
+                    /*}*/
                 }
             }
             p.right = newRight;

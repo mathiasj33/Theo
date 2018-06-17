@@ -1,5 +1,3 @@
-import tmp2.Grammar;
-
 import java.util.Scanner;
 
 public final class CNF {

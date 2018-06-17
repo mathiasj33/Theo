@@ -1,3 +1,8 @@
+import tmp.PDA;
+import tmp.PDAParser;
+import tmp.PDATransition;
+import tmp.State;
+
 import java.util.HashSet;
 import java.util.Scanner;
 import java.util.Set;
