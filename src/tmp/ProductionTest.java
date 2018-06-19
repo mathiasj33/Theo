@@ -1,4 +1,7 @@
 import org.junit.Test;
+import tmp2.Atom;
+import tmp2.NonTerminal;
+import tmp2.Production;
 
 import java.util.ArrayList;
 import java.util.HashSet;

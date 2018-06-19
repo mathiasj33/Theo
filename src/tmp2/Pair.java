@@ -1,3 +1,5 @@
+package tmp2;
+
 import java.util.Objects;
 
 public class Pair<A, B> {

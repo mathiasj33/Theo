@@ -1,3 +1,5 @@
+package tmp2;
+
 public abstract class Atom implements Comparable<Atom> {
   public abstract boolean isTerminal();
 

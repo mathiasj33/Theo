@@ -6,7 +6,7 @@ import java.util.Scanner;
 import static org.junit.Assert.fail;
 
 public class TestUtils {
-    public static Grammar loadGrammar(String path) {
+    /*public static Grammar loadGrammar(String path) {
         Scanner scanner = null;
         try {
             scanner = new Scanner(new FileInputStream(new File(path)));
@@ -15,5 +15,16 @@ public class TestUtils {
             fail("Couldn't find grammar");
         }
         return Grammar.parse(scanner);
+    }*/
+
+    public static PDA loadPDA(String path) {
+        Scanner scanner = null;
+        try {
+            scanner = new Scanner(new FileInputStream(new File(path)));
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+            fail("Couldn't find pda");
+        }
+        return PDAParser.parse(scanner);
     }
 }

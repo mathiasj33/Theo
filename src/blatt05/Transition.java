@@ -1,5 +1,3 @@
-package tmp;
-
 import java.util.Comparator;
 import java.util.Objects;
 

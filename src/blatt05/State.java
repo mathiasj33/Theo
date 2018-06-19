@@ -1,5 +1,3 @@
-package tmp;
-
 import java.util.Objects;
 
 public class State implements Comparable<State> {
