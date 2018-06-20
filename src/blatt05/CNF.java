@@ -1,5 +1,3 @@
-package tmp2;
-
 import java.util.Scanner;
 
 public final class CNF {

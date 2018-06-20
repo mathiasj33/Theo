@@ -1,5 +1,3 @@
-package tmp2;
-
 import java.util.*;
 import java.util.function.BiPredicate;
 import java.util.regex.Pattern;

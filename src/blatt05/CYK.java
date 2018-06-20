@@ -1,5 +1,3 @@
-package tmp2;
-
 import java.io.FileNotFoundException;
 import java.util.Scanner;
 

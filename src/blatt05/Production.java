@@ -1,5 +1,3 @@
-package tmp2;
-
 import java.util.*;
 
 public class Production implements Comparable<Production> {

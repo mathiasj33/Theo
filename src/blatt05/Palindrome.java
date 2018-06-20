@@ -1,5 +1,3 @@
-package tmp;
-
 public final class Palindrome {
     private Palindrome() {
     }
