@@ -28,7 +28,6 @@ public final class Simulate {
             TuringMachine.Transition<S> t = tm.getTransition(conf.getState(), letter);
             if(t == null) return Result.STUCK;
             conf.executeTransition(t);
-            if(tm.isFinal(conf.getState())) return Result.ACCEPTED;
         }
         if(tm.isFinal(conf.getState())) return Result.ACCEPTED;
         char letter = conf.getCurrentChar();

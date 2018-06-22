@@ -1,29 +1,43 @@
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Objects;
 
 public class Configuration<S> {
     private S state;
-    private String left;
-    private String right;
+    private List<Character> tape = new ArrayList<>();
+    private int position;
 
     public Configuration(S state, String left, String right) {
         this.state = state;
-        this.left = left;
-        this.right = right;
+        this.tape = new ArrayList<>();
+        fillWithChars(this.tape, left + right);
+        this.position = left.length();
     }
 
+    private void fillWithChars(List<Character> list, String s) {
+        for (char c : s.toCharArray()) {
+            list.add(c);
+        }
+    }
 
     public void executeTransition(TuringMachine.Transition<S> transition) {
         state = transition.successor;
-        right = right.equals("") ? transition.letter + "" : transition.letter + right.substring(1);
+        if(tape.isEmpty()) tape.add(transition.letter);
+        else tape.set(position, transition.letter);
         switch (transition.direction) {
             case L:
-                char lastLeft = left.equals("") ? TuringMachine.EMPTY_LETTER : left.charAt(left.length() - 1);
-                left = left.equals("") ? "" : left.substring(0, left.length() - 1);
-                right += lastLeft;
+                position--;
+                if(position < 0) {
+                    tape.add(0, TuringMachine.EMPTY_LETTER);
+                    position = 0;
+                }
                 break;
             case R:
-                left += right.charAt(0);
-                right = right.substring(1);
+                position++;
+                if (position >= tape.size()) {
+                    tape.add(TuringMachine.EMPTY_LETTER);
+                }
                 break;
             case N:
                 break;
@@ -34,31 +48,7 @@ public class Configuration<S> {
         return state;
     }
 
-    public String getLeft() {
-        return left;
-    }
-
-    public String getRight() {
-        return right;
-    }
-
     public char getCurrentChar() {
-        return right.equals("") ? TuringMachine.EMPTY_LETTER : right.charAt(0);
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        Configuration<?> that = (Configuration<?>) o;
-        return Objects.equals(state, that.state) &&
-                Objects.equals(left, that.left) &&
-                Objects.equals(right, that.right);
-    }
-
-    @Override
-    public int hashCode() {
-
-        return Objects.hash(state, left, right);
+        return tape.isEmpty() ? TuringMachine.EMPTY_LETTER : tape.get(position);
     }
 }
