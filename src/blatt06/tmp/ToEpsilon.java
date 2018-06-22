@@ -19,5 +19,6 @@ public final class ToEpsilon {
 
     public static <S> EpsilonNFA<?> toEpsilonNFA(TuringMachine<S> tm) {
         // TODO
+        return null;
     }
 }

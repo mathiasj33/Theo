@@ -17,14 +17,4 @@ public class TestUtils {
         return Grammar.parse(scanner);
     }*/
 
-    public static PDA loadPDA(String path) {
-        Scanner scanner = null;
-        try {
-            scanner = new Scanner(new FileInputStream(new File(path)));
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-            fail("Couldn't find pda");
-        }
-        return PDAParser.parse(scanner);
-    }
 }

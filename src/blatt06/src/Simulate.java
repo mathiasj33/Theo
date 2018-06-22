@@ -2,9 +2,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayDeque;
-import java.util.Deque;
-import java.util.Iterator;
+import java.util.*;
 
 public final class Simulate {
     private Simulate() {
@@ -23,7 +21,20 @@ public final class Simulate {
     }
 
     public static <S> Result simulate(TuringMachine<S> tm, String word, int bound) {
-        return null; // TODO
+        Configuration<S> conf = new Configuration<>(tm.getInitialState(), "", word);
+        for (int i = 0; i < bound; i++) {
+            if(tm.isFinal(conf.getState())) return Result.ACCEPTED;
+            char letter = conf.getCurrentChar();
+            TuringMachine.Transition<S> t = tm.getTransition(conf.getState(), letter);
+            if(t == null) return Result.STUCK;
+            conf.executeTransition(t);
+            if(tm.isFinal(conf.getState())) return Result.ACCEPTED;
+        }
+        if(tm.isFinal(conf.getState())) return Result.ACCEPTED;
+        char letter = conf.getCurrentChar();
+        TuringMachine.Transition<S> t = tm.getTransition(conf.getState(), letter);
+        if(t == null) return Result.STUCK;
+        return Result.RUNNING;
     }
 
     public enum Result {
