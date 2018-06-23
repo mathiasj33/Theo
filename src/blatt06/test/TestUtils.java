@@ -1,20 +1,22 @@
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
+import java.io.*;
 import java.util.Scanner;
 
 import static org.junit.Assert.fail;
 
 public class TestUtils {
-    /*public static Grammar loadGrammar(String path) {
-        Scanner scanner = null;
+    public static TuringMachine<String> loadTM(String path) {
+        BufferedReader reader = null;
         try {
-            scanner = new Scanner(new FileInputStream(new File(path)));
+            reader = new BufferedReader(new InputStreamReader(new FileInputStream(new File(path))));
+            return TuringMachine.parse(reader);
         } catch (FileNotFoundException e) {
             e.printStackTrace();
-            fail("Couldn't find grammar");
+            fail("Couldn't find TM");
+        } catch (IOException e) {
+            e.printStackTrace();
+            fail("Parsing error");
         }
-        return Grammar.parse(scanner);
-    }*/
+        return null;
+    }
 
 }

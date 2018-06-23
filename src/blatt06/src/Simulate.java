@@ -8,7 +8,7 @@ public final class Simulate {
     private Simulate() {
     }
 
-    public static void main(String... args) throws IOException {
+    /*public static void main(String... args) throws IOException {
         try (BufferedReader reader =
                      new BufferedReader(new InputStreamReader(System.in, StandardCharsets.UTF_8))) {
             TuringMachine<String> tm = TuringMachine.parse(reader);
@@ -18,7 +18,7 @@ public final class Simulate {
                 System.out.println(simulate(tm, split[0], Integer.parseInt(split[1])));
             }
         }
-    }
+    }*/
 
     public static <S> Result simulate(TuringMachine<S> tm, String word, int bound) {
         Configuration<S> conf = new Configuration<>(tm.getInitialState(), "", word);

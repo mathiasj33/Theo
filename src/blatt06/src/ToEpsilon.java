@@ -23,7 +23,21 @@ public final class ToEpsilon {
         tm.getFinalStates().forEach(nfa::addFinalState);
 
         for (Pair<S, TuringMachine.Transition<S>> pair : tm.getAllTransitions()) {
-            nfa.addTransition(pair.a, pair.b.letter, pair.b.successor);
+            if (pair.b.letter == TuringMachine.EMPTY_LETTER) {
+                //Determine if TM accepts this word after reading EMPTY_SYMBOL (a maximum of len(states) times)
+                if(Simulate.simulate(tm, "", tm.getStates().size()) == Simulate.Result.ACCEPTED) {
+                    nfa.addFinalState(pair.a);
+                }
+            } else {
+                nfa.addTransition(pair.a, pair.b.letter, pair.b.successor);
+            }
+        }
+
+        //final states need to accept everything
+        for (S s : tm.getFinalStates()) {
+            for (char c : tm.getAlphabet()) {
+                nfa.addTransition(s, c, s);
+            }
         }
 
         return nfa;

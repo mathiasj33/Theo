@@ -170,8 +170,12 @@ public class TuringMachine<S> {
         for (S s : successorFunction.keySet()) {
             for (char c : alphabet) {
                 Transition<S> t = successorFunction.get(s).get(c);
+                if(t == null) continue;
                 allTransitions.add(new Pair<>(s, t));
             }
+            Transition<S> t = successorFunction.get(s).get(EMPTY_LETTER);
+            if(t == null) continue;
+            allTransitions.add(new Pair<>(s, t));
         }
         return allTransitions;
     }

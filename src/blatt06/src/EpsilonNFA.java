@@ -82,6 +82,10 @@ public class EpsilonNFA<S> {
         finalStates.remove(state);
     }
 
+    public Set<S> getFinalStates() {
+        return finalStates;
+    }
+
     @Override
     public String toString() {
         Set<S> states = getStates();

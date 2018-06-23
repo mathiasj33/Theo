@@ -1,0 +1,9 @@
+01
+even
+fin
+even;0;even;0;R
+even;1;odd;1;R
+odd;0;odd;0;R
+odd;1;even;1;R
+even;█;fin;█;R
+END
