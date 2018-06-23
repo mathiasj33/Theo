@@ -165,6 +165,17 @@ public class TuringMachine<S> {
         return successorFunction.getOrDefault(state, Collections.emptyMap()).get(letter);
     }
 
+    public Set<Pair<S, Transition<S>>> getAllTransitions() {
+        Set<Pair<S, Transition<S>>> allTransitions = new HashSet<>();
+        for (S s : successorFunction.keySet()) {
+            for (char c : alphabet) {
+                Transition<S> t = successorFunction.get(s).get(c);
+                allTransitions.add(new Pair<>(s, t));
+            }
+        }
+        return allTransitions;
+    }
+
     private static char toChar(String str) {
         if (str.length() != 1) {
             throw new IllegalArgumentException();

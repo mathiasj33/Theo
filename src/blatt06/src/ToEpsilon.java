@@ -18,7 +18,14 @@ public final class ToEpsilon {
     }
 
     public static <S> EpsilonNFA<?> toEpsilonNFA(TuringMachine<S> tm) {
-        // TODO
-        return null;
+        EpsilonNFA<S> nfa = new EpsilonNFA<>(tm.getAlphabet(), tm.getInitialState());
+        tm.getStates().forEach(nfa::addState);
+        tm.getFinalStates().forEach(nfa::addFinalState);
+
+        for (Pair<S, TuringMachine.Transition<S>> pair : tm.getAllTransitions()) {
+            nfa.addTransition(pair.a, pair.b.letter, pair.b.successor);
+        }
+
+        return nfa;
     }
 }
